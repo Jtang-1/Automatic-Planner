@@ -6,9 +6,9 @@
     <script>
         let autocomplete;
         function initMap(){
-            autocomplete= new google.maps.places.Autocomplete(
+            var sessionToken = new google.maps.places.AutocompleteSessionToken();            autocomplete= new google.maps.places.Autocomplete(
                 document.getElementById("autocomplete"),
-                {
+                {   sessionToken: sessionToken,
                     types: ["establishment"],
                     componentRestrictions: {"country": ["us"]},
                     fields: ["place_id", "name", "formatted_address", "opening_hours", "types", "business_status"]
@@ -38,7 +38,7 @@
         }
     </script>
     <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBLCP2uHQqU8GIgsjYTo_tDhw6y_U-fRUk&libraries=places&callback=initMap"
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBncbwIJ2Ug0E7oPoYubcplGGlD-dEuo98&libraries=places&callback=initMap"
     async defer>
     </script>
 

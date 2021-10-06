@@ -1,10 +1,11 @@
 import copy
+import config
 from place import google_map_places as places_api
 from helpers import *
 # Mcdonald Place_ID ChIJHZJ7UqHd3IARXzrKFEIBFyk
 # Starbucks Place_ID ChIJzUGCDNXc3IAR4l4UZu6QGLU
 
-api_key = "AIzaSyBLCP2uHQqU8GIgsjYTo_tDhw6y_U-fRUk"
+api_key = config.api_key
 data_type = 'json'
 language = 'en'
 

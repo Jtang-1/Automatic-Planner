@@ -1,7 +1,8 @@
 from helpers import *
+import config
 import requests
 
-api_key = "AIzaSyBLCP2uHQqU8GIgsjYTo_tDhw6y_U-fRUk"
+api_key = config.api_key
 data_type = 'json'
 language = "en"
 fields = "name,formatted_address,type,opening_hours,business_status"
