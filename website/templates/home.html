@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+        let autocomplete;
+        function initMap(){
+            autocomplete= new google.maps.places.Autocomplete(
+                document.getElementById("autocomplete"),
+                {
+                    types: ["establishment"],
+                    componentRestrictions: {"country": ["us"]},
+                    fields: ["place_id", "name", "formatted_address", "opening_hours", "types", "business_status"]
+                });
+            autocomplete.addListener('place_changed', onPlaceChanged);
+        }
+
+        function onPlaceChanged(){
+            var place = autocomplete.getPlace();
+
+            if (!place.place_id){
+                document.getElementById("autocomplete".placeholder = "Enter a place");
+            } else{
+                document.getElementById("details").innerHTML = place.name;
+                let location = JSON.stringify({
+                    "name":place.name,
+                    "place_id":place.place_id,
+                    "formatted_address":place.formatted_address,
+                    "type": place.types,
+                    "opening_hours":place.opening_hours,
+                    "business_status":place.business_status,
+                    });
+                const request = new XMLHttpRequest();
+                request.open("POST", "/processLocation",true);
+                request.send(location);
+            }
+        }
+    </script>
+    <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBLCP2uHQqU8GIgsjYTo_tDhw6y_U-fRUk&libraries=places&callback=initMap"
+    async defer>
+    </script>
+
+    <form action="#" method="post">
+        <label>Location:</label>
+        <p><input type="text" id="autocomplete" name="location" style="width:300px"></p>
+        <!--<p><input type="submit" value="submit"> </p>-->
+    </form>
+</head>
+<body>
+    <ol type="1">
+        <option id="details"></option>
+        {% for location in locations %}
+            <option>{{location}}</option>
+        {% endfor %}
+    </ol>
+
+</body>
+</html>
