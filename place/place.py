@@ -10,9 +10,11 @@ class Place():
         self.place_type = place_type
         self.opening_hours = opening_hours
         self.business_status = business_status
+        self.edges = ()
 
     def to_json(self):
         return jsonpickle.encode(self)
 
     def get_name(self):
         return self.name
+

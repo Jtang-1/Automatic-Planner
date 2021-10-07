@@ -12,7 +12,7 @@ def get_place_id(address: str) -> str:
     place_search_endpoint = f'https://maps.googleapis.com/maps/api/place/findplacefromtext/{data_type}'
     parameters = {"input": address, "inputtype": "textquery", "fields": "place_id",
                   "language": language, "key": api_key}
-    url = _create_encoded_url(parameters, place_search_endpoint)
+    url = create_encoded_url(parameters, place_search_endpoint)
     return get_url_response(url)["candidates"][0]["place_id"]
 
 
