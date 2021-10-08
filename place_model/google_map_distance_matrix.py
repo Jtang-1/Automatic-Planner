@@ -1,6 +1,6 @@
 import copy
 import config
-from place import google_map_places as places_api
+import place_model.google_map_places as places_api
 from helpers import *
 # Mcdonald Place_ID ChIJHZJ7UqHd3IARXzrKFEIBFyk
 # Starbucks Place_ID ChIJzUGCDNXc3IAR4l4UZu6QGLU
@@ -10,7 +10,7 @@ data_type = 'json'
 language = 'en'
 
 
-# Returns Origin dict with {Destination:distance} values
+# Returns dict with {Origin:{Destination:distance},Origin...} values
 def distance_dict(origins: [str], destinations: [str]) -> dict[str, dict[str, str]]:
     if isinstance(origins, str):
         origins = [origins]
@@ -19,7 +19,7 @@ def distance_dict(origins: [str], destinations: [str]) -> dict[str, dict[str, st
 
     distance_dictionary, destinations_distance = {}, {}
     json_distance_matrix = _raw_distance_matrix(origins, destinations)
-
+    print("json distance ", json_distance_matrix)
     for origin_count, origin in enumerate(origins):
         for destination_count, destination in enumerate(destinations):
             destinations_distance[destination] = \
@@ -28,6 +28,7 @@ def distance_dict(origins: [str], destinations: [str]) -> dict[str, dict[str, st
     return distance_dictionary
 
 
+# returns api json response as dict
 def _raw_distance_matrix(origins: [str], destinations: [str]):
     origins_place_ids, destinations_place_ids = place_id_parameter(origins), place_id_parameter(destinations)
     endpoint = f'https://maps.googleapis.com/maps/api/distancematrix/{data_type}'
@@ -37,6 +38,7 @@ def _raw_distance_matrix(origins: [str], destinations: [str]):
     return get_url_response(url)
 
 
+# creates json call parameter
 def place_id_parameter(places: [str]) -> str:
     place_ids = []
     for place in places:

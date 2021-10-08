@@ -2,7 +2,7 @@ import json
 import jsonpickle
 
 
-class Place():
+class Place:
     def __init__(self, place_id: str, name: str,
                  place_type: str = None, opening_hours: dict = None, business_status: str = None):
         self.place_id = place_id

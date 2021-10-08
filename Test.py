@@ -2,14 +2,7 @@ import json
 import jsonpickle
 
 
-class Encoder (json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Test):
-            return obj.to_json()
-        return super().default(self, obj)
-
-
-class Test (json.JSONEncoder):
+class Test ():
     def __init__(self, student, grade):
         self.student = [student]
         self.grade = grade

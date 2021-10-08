@@ -16,6 +16,7 @@ def get_place_id(address: str) -> str:
     return get_url_response(url)["candidates"][0]["place_id"]
 
 
+#returns api json response as dict
 def place_details(address: str) -> dict:
     place_id = get_place_id(address)
     print(place_id)

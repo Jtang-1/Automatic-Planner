@@ -44,14 +44,14 @@
 
     <form action="#" method="post">
         <label>Location:</label>
-        <p><input type="text" id="autocomplete" name="location" style="width:300px"></p>
+        <p><input type="text" id="autocomplete" name="location_names" style="width:300px"></p>
         <!--<p><input type="submit" value="submit"> </p>-->
     </form>
 </head>
 <body>
     <ol type="1">
         <option id="details"></option>
-        {% for location in locations %}
+        {% for location in location_names %}
             <option>{{location}}</option>
         {% endfor %}
     </ol>
