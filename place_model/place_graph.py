@@ -16,14 +16,6 @@ class PlaceGraph:
             for edge in self.edges:
                 self.add_edge(edge)
 
-    def to_json(self):
-        self._neighbors = jsonpickle.encode(self._neighbors, keys=True)
-        return jsonpickle.encode(self, keys=True)
-
-    # Call after object is encoded->decoded
-    def to_obj(self):
-        self._neighbors = jsonpickle.decode(self._neighbors, keys=True)
-
     @property
     def num_edge(self):
         return len(self.edges)
@@ -40,8 +32,7 @@ class PlaceGraph:
         return len(self._neighbors[vertex])
 
     def neighbors(self, vertex: Place):
-        print("this is self.neighbors", self._neighbors)
-        return self._neighbors[vertex]
+        return iter(self._neighbors[vertex])
 
     def add_vertex(self, vertex: Place):
         if vertex not in self._neighbors:

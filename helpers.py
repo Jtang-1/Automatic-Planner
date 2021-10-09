@@ -21,7 +21,7 @@ def get_url_response(url: str) -> dict:
             result = response.json()
             if result["status"] == "OK":
                 return response.json()
-            elif result["status"] !="UNKNOWN_ERROR":
+            elif result["status"] != "UNKNOWN_ERROR":
                 raise Exception(result["error_message"])
 
         if current_delay > max_delay:

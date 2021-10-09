@@ -1,7 +1,3 @@
-import json
-import jsonpickle
-
-
 class Place:
     def __init__(self, place_id: str, name: str,
                  place_type: str = None, opening_hours: dict = None, business_status: str = None):
@@ -12,9 +8,4 @@ class Place:
         self.business_status = business_status
         self.edges = ()
 
-    def to_json(self):
-        return jsonpickle.encode(self)
-
-    def get_name(self):
-        return self.name
 
