@@ -1,5 +1,6 @@
 from place_model.edge import Edge
 from place_model.place import Place
+from place_model.home import Home
 import jsonpickle
 
 
@@ -11,6 +12,7 @@ class PlaceGraph:
             self.vertex = set(vertex)
             for v in self.vertex:
                 self.add_vertex(v)
+                self.check_if_home(v)
         if edges:
             self.edges = set(edges)
             for edge in self.edges:
@@ -28,6 +30,10 @@ class PlaceGraph:
     def vertices(self):
         return self._neighbors.keys()
 
+    @property
+    def home(self):
+        return self._home
+
     def degree(self, vertex: Place):
         return len(self._neighbors[vertex])
 
@@ -37,11 +43,15 @@ class PlaceGraph:
     def add_vertex(self, vertex: Place):
         if vertex not in self._neighbors:
             self._neighbors[vertex] = set()
+            self.check_if_home(vertex)
 
     def add_edge(self, edge: Edge):
         self.edges.add(edge)
         self.add_vertex(edge.place1)
+        self.check_if_home(edge.place1)
         self.add_vertex(edge.place2)
+        self.check_if_home(edge.place2)
+
         self._neighbors[edge.place1].add(edge)
         self._neighbors[edge.place2].add(edge)
 
@@ -57,6 +67,9 @@ class PlaceGraph:
             self.remove_edge(e)
         del self._neighbors[vertex]
 
+    def check_if_home(self, vertex):
+        if isinstance(vertex, Home):
+            self._home = vertex
 
 if __name__ == "__main__":
     graph = PlaceGraph()

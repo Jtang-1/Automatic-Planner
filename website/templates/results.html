@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Itinerary</title>
+</head>
+<body>
+    <ol type="1">
+        <option id="details"></option>
+        {% for location in ordered_locations %}
+            <li>{{location}}</li>
+        {% endfor %}
+    </ol>
+</body>
+</html>

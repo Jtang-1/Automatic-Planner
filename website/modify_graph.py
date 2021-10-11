@@ -46,8 +46,8 @@ def add_edges(new_place: Place):
 
 def neighboring_distances(place: Place) -> dict[Place, dict[Place, int]]:
     existing_places = set(graph.vertices)
-    # print("Existing_places are", existing_places)
-    # print("passed in place is", place)
+    print("Existing_places are", existing_places)
+    print("passed in place is", place)
     existing_places.remove(place)
     if len(existing_places) != 0:
         distance_dict = dist_api.distance_dict(place, list(existing_places))
