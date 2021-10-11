@@ -6,23 +6,31 @@
     <script>
         let autocomplete;
         function initMap(){
-            var sessionToken = new google.maps.places.AutocompleteSessionToken();            autocomplete= new google.maps.places.Autocomplete(
-                document.getElementById("autocomplete"),
-                {   sessionToken: sessionToken,
-                    types: ["establishment"],
-                    componentRestrictions: {"country": ["us"]},
-                    fields: ["place_id", "name", "formatted_address", "opening_hours", "types", "business_status"]
-                });
-            autocomplete.addListener('place_changed', onPlaceChanged);
+            destination_autocomplete = create_autocomplete_obj("destination_autocomplete");
+            destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);
+            home_autocomplete = create_autocomplete_obj("home_autocomplete")
+            home_autocomplete.addListener('place_changed', onHomePlaceChanged)
         }
 
-        function onPlaceChanged(){
-            var place = autocomplete.getPlace();
-
+        function onDestinationPlaceChanged(){
+            var place = destination_autocomplete.getPlace();
             if (!place.place_id){
-                document.getElementById("autocomplete".placeholder = "Enter a place");
+                document.getElementById("destination_autocomplete".placeholder = "Enter a place");
             } else{
-                document.getElementById("details").innerHTML = place.name;
+                sendInfo(place,"/receiveDestination");
+            }
+        }
+        function onHomePlaceChanged(){
+            var place = home_autocomplete.getPlace();
+            if (!place.place_id){
+                document.getElementById("home_autocomplete".placeholder = "Enter a place");
+            } else{
+                sendInfo(place,"/receiveHome");
+            }
+        }
+
+        function sendInfo(place,url){
+            document.getElementById("details").innerHTML = place.name;
                 let location = JSON.stringify({
                     "name":place.name,
                     "place_id":place.place_id,
@@ -32,9 +40,20 @@
                     "business_status":place.business_status,
                     });
                 const request = new XMLHttpRequest();
-                request.open("POST", "/processLocation",true);
+                request.open("POST", url, true);
                 request.send(location);
-            }
+        }
+
+        function create_autocomplete_obj(id){
+            var sessionToken = new google.maps.places.AutocompleteSessionToken();
+            autocomplete= new google.maps.places.Autocomplete(
+                document.getElementById(id),
+                {   sessionToken: sessionToken,
+                    types: ["establishment"],
+                    componentRestrictions: {"country": ["us"]},
+                    fields: ["place_id", "name", "formatted_address", "opening_hours", "types", "business_status"]
+                });
+            return autocomplete;
         }
     </script>
     <script
@@ -44,8 +63,14 @@
     <script type="module" src="website/templates/main.js" type="text/javascript"></script>
 
     <form action="#" method="post">
+        <label>Where are you staying?</label>
+        <p><input type="text" id="home_autocomplete" name="location_names" style="width:300px"></p>
+
+    </form>
+
+    <form action="#" method="post">
         <label>Location:</label>
-        <p><input type="text" id="autocomplete" name="location_names" style="width:300px"></p>
+        <p><input type="text" id="destination_autocomplete" name="location_names" style="width:300px"></p>
         <!--<p><input type="submit" value="submit"> </p>-->
 
     </form>

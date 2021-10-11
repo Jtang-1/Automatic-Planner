@@ -1,19 +1,15 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 from datetime import timedelta
-from website.website_helpers import *
 import secrets
-from place_model.edge import Edge
 from place_model.place import Place
-from place_model.place_graph import PlaceGraph
-import place_model.google_map_distance_matrix as dist_api
+from website import modify_graph
+import shortest_path
 
-import copy
 # http://127.0.0.1:5000
 app = Flask(__name__)
 app.secret_key = secrets.token_bytes(32)
 app.permanent_session_lifetime = timedelta(days=5)
 
-graph = PlaceGraph()
 
 @app.before_request
 def make_session_permanent():
@@ -28,68 +24,48 @@ def home():
     return render_template("home.html", location_names=session["location_name"])
 
 
-@app.route("/processLocation", methods=["POST"])
-def processLocation():
+@app.route("/receiveDestination", methods=["POST"])
+def receiveDestination():
     if request.method == "POST":
         place_details = request.get_json(force=True)
-        if place_details["place_id"] not in session["place_id"]:
-            new_place = create_place(place_details)
-            add_place(new_place)
-            add_edges(new_place)
-        print(session["location_name"])
-        return redirect(url_for("home"))
-    return render_template("home.html", location_names=session["location_name"])
+        process_place(modify_graph.create_place(place_details))
+    return redirect(url_for("home"))
+
+@app.route("/receiveHome", methods=["POST"])
+def receiveHome():
+    if request.method == "POST":
+        place_details = request.get_json(force=True)
+        process_place(modify_graph.create_home(place_details))
+    return redirect(url_for("home"))
 
 
-def create_place(place_details):
-    place_type = key_value("type", place_details)
-    opening_hours = key_value("opening_hours", place_details)
-    business_status = key_value("business_status", place_details)
-    return Place(place_details["place_id"], place_details["name"], place_type,
-                 opening_hours, business_status)
+def process_place(new_place: Place):
+    if new_place.place_id not in session["place_id"]:
+        modify_graph.add_place(new_place)
+        modify_graph.add_edges(new_place)
 
+        session["place_id"].append(new_place.place_id)
+        session["location_name"].append(new_place.name)
+    print(session["location_name"])
 
-def add_place(new_place: Place):
-    session["place_id"].append(new_place.place_id)
-    session["location_name"].append(new_place.name)
-    graph.add_vertex(new_place)
-    # for v in graph.vertices:
-    #     if new_place == v:
-    #         print("True")
-
-
-def add_edges(new_place: Place) -> Edge:
-    distance_dict = neighboring_distances(new_place)
-    print("distance dict in add_edges is", distance_dict)
-    for place in graph.vertices:
-        if place != new_place:
-            print("new_place is", new_place)
-            print("place in add_edges is", place)
-            dist_to_neighbor = distance_dict[new_place][place]
-            graph.add_edge(Edge(place, new_place, dist_to_neighbor))
-    print(graph.num_edge)
-
-
-def remove_place(place_details):
-    pass
-
-
-def neighboring_distances(place: Place) -> dict[Place, dict[Place, int]]:
-    existing_places = set(graph.vertices)
-    print("Existing_places are", existing_places)
-    print("passed in place is", place)
-    existing_places.remove(place)
-    if len(existing_places) != 0:
-        distance_dict = dist_api.distance_dict(place, list(existing_places))
-        print("this is distance_dict", distance_dict)
-        print("this is disntace_shllow copy", copy.copy(distance_dict))
-        return distance_dict
-
-
-
-def create_edges(place: Place):
-    pass
+def process_place_test(new_place: Place):
+    modify_graph.add_place(new_place)
+    modify_graph.add_edges(new_place)
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # app.run(debug=True)
+    UCI_details = {'name': 'University of California Irvine', 'place_id': 'ChIJkb-SJQ7e3IAR7LfattDF-3k', 'formatted_address': 'Irvine, CA 92697, USA', 'type': ['university', 'point_of_interest', 'establishment'], 'business_status': 'OPERATIONAL'}
+    Great_Park_details = {'name': 'Great Park Ice & Fivepoint Arena', 'place_id': 'ChIJgbGAbmLD3IARw5nd_Msw7RM', 'formatted_address': '888 Ridge Valley, Irvine, CA 92618, USA', 'type': ['point_of_interest', 'establishment'], 'opening_hours': {'open_now': True, 'periods': [{'close': {'day': 0, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 0, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 1, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 1, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 2, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 2, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 3, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 3, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 4, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 4, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 5, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 5, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 6, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 6, 'time': '0600', 'hours': 6, 'minutes': 0}}], 'weekday_text': ['Monday: 6:00 AM – 11:00 PM', 'Tuesday: 6:00 AM – 11:00 PM', 'Wednesday: 6:00 AM – 11:00 PM', 'Thursday: 6:00 AM – 11:00 PM', 'Friday: 6:00 AM – 11:00 PM', 'Saturday: 6:00 AM – 11:00 PM', 'Sunday: 6:00 AM – 11:00 PM']}, 'business_status': 'OPERATIONAL'}
+    Spectrum_details = {'name': 'Irvine Spectrum Center', 'place_id': 'ChIJR892-fvn3IARQnnqgTu-Phc', 'formatted_address': '670 Spectrum Center Dr, Irvine, CA 92618, USA', 'type': ['shopping_mall', 'point_of_interest', 'establishment'], 'opening_hours': {'open_now': True, 'periods': [{'close': {'day': 0, 'time': '2100', 'hours': 21, 'minutes': 0}, 'open': {'day': 0, 'time': '1000', 'hours': 10, 'minutes': 0}}, {'close': {'day': 1, 'time': '2100', 'hours': 21, 'minutes': 0}, 'open': {'day': 1, 'time': '1000', 'hours': 10, 'minutes': 0}}, {'close': {'day': 2, 'time': '2100', 'hours': 21, 'minutes': 0}, 'open': {'day': 2, 'time': '1000', 'hours': 10, 'minutes': 0}}, {'close': {'day': 3, 'time': '2100', 'hours': 21, 'minutes': 0}, 'open': {'day': 3, 'time': '1000', 'hours': 10, 'minutes': 0}}, {'close': {'day': 4, 'time': '2100', 'hours': 21, 'minutes': 0}, 'open': {'day': 4, 'time': '1000', 'hours': 10, 'minutes': 0}}, {'close': {'day': 5, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 5, 'time': '1000', 'hours': 10, 'minutes': 0}}, {'close': {'day': 6, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 6, 'time': '1000', 'hours': 10, 'minutes': 0}}], 'weekday_text': ['Monday: 10:00 AM – 9:00 PM', 'Tuesday: 10:00 AM – 9:00 PM', 'Wednesday: 10:00 AM – 9:00 PM', 'Thursday: 10:00 AM – 9:00 PM', 'Friday: 10:00 AM – 10:00 PM', 'Saturday: 10:00 AM – 10:00 PM', 'Sunday: 10:00 AM – 9:00 PM']}, 'business_status': 'OPERATIONAL'}
+    UCI = modify_graph.create_place(UCI_details)
+    Great_Park = modify_graph.create_place(Great_Park_details)
+    Spectrum = modify_graph.create_home(Spectrum_details)
+    process_place_test(UCI)
+    process_place_test(Great_Park)
+    process_place_test(Spectrum)
+
+    shortest_path.closest_neighbor(UCI)
+
+
+

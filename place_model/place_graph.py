@@ -31,7 +31,7 @@ class PlaceGraph:
     def degree(self, vertex: Place):
         return len(self._neighbors[vertex])
 
-    def neighbors(self, vertex: Place):
+    def neighbors_edges(self, vertex: Place):
         return iter(self._neighbors[vertex])
 
     def add_vertex(self, vertex: Place):
@@ -52,7 +52,7 @@ class PlaceGraph:
             self._neighbors[edge.place2].remove(edge)
 
     def remove_vertex(self, vertex: Place):
-        edges_to_delete = list(self.neighbors(vertex))
+        edges_to_delete = list(self.neighbors_edges(vertex))
         for e in edges_to_delete:
             self.remove_edge(e)
         del self._neighbors[vertex]
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         print(edge.place1.name)  # prints mcdonald2, mcdonald1
     for place in graph.vertices:
         print(place.name, "neighbors are")
-        for neighbors in graph.neighbors(place):
+        for neighbors in graph.neighbors_edges(place):
             if neighbors.place1 == place:
                 print(neighbors.place2.name)
             else:
@@ -96,7 +96,7 @@ if __name__ == "__main__":
         print(edge.place1.name)  # prints mcdonald1
     for place in graph.vertices:
         print(place.name, "neighbors are")
-        for neighbors in graph.neighbors(place):
+        for neighbors in graph.neighbors_edges(place):
             if neighbors.place1 == place:
                 print(neighbors.place2.name)
             else:
