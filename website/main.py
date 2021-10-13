@@ -21,7 +21,11 @@ def home():
     if "location_name" not in session:
         session["location_name"] = []
         session["place_id"] = []
-    return render_template("home.html", location_names=session["location_name"])
+    if "place_visiting_lat_lng" not in session:
+        session["place_visiting_lat_lng"] = {"lat":None, "lng":None}
+    return render_template("home.html", location_names=session["location_name"],
+                           visit_place_lat=session["place_visiting_lat_lng"]["lat"],
+                           visit_place_lng=session["place_visiting_lat_lng"]["lng"])
 
 
 @app.route("/receiveDestination", methods=["POST"])
@@ -38,6 +42,15 @@ def receiveHome():
         process_place(modify_graph.create_home(place_details))
     return redirect(url_for("home"))
 
+@app.route("/receiveVisitingArea", methods=["POST"])
+def receiveVisitingArea():
+    if request.method == "POST":
+        place_details = request.get_json(force=True)
+        place_lat_lng = place_details["geometry"]["location"]
+        session["place_visiting_lat_lng"] = place_lat_lng
+        print("visiting area is", place_details)
+        print("visting area lat,lng: ", place_lat_lng["lat"], ",", place_lat_lng["lng"])
+    return redirect(url_for("home"))
 
 @app.route("/results", methods=["GET"])
 def results():
