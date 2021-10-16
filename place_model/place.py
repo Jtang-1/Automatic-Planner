@@ -6,6 +6,5 @@ class Place:
         self.place_type = place_type
         self.opening_hours = opening_hours
         self.business_status = business_status
-        self.edges = ()
 
 

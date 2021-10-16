@@ -20,7 +20,7 @@ def distance_dict(origins: [Place], destinations: [Place]) -> dict[Place, dict[P
 
     distance_dictionary, destinations_distance = {}, {}
     json_distance_matrix = _raw_distance_matrix(origins, destinations)
-    print("json distance ", json_distance_matrix)
+    # print("json distance ", json_distance_matrix)
     for origin_count, origin in enumerate(origins):
         for destination_count, destination in enumerate(destinations):
             destinations_distance[destination] = \

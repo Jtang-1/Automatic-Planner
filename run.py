@@ -7,8 +7,9 @@ import pprint
 
 
 class Object1:
-    def __init__ (self,att1):
+    def __init__(self,att1):
         self.att1 = att1
+        self.att3 = "accessed by child"
 
     def test_print(self, words):
         print("wordword")
@@ -69,6 +70,7 @@ def run():
         print("is Object1")
     if isinstance(object2, Object2):
         print("is Object2")
+        print("can print att3", object2.att3)
     object2.test_print("wordword")
     object2.test_print2()
 

@@ -1,6 +1,7 @@
 from place_model.home import Home
 from place_model.edge import Edge
 from place_model.place import Place
+from place_model.attraction import Attraction
 import place_model.google_map_distance_matrix as dist_api
 from place_model.place_graph import PlaceGraph
 from website.website_helpers import *
@@ -20,12 +21,12 @@ def create_home(place_details):
                 opening_hours, business_status)
 
 
-def create_place(place_details):
+def create_attraction(place_details):
     place_type = key_value("type", place_details)
     opening_hours = key_value("opening_hours", place_details)
     business_status = key_value("business_status", place_details)
-    return Place(place_details["place_id"], place_details["name"], place_type,
-                 opening_hours, business_status)
+    return Attraction(place_details["place_id"], place_details["name"], place_type,
+                      opening_hours, business_status)
 
 
 def add_place(new_place: Place):
@@ -41,13 +42,13 @@ def add_edges(new_place: Place):
             # print("place in add_edges is", place)
             dist_to_neighbor = distance_dict[new_place][place]
             graph.add_edge(Edge(place, new_place, dist_to_neighbor))
-    print(graph.num_edge)
+    #print(graph.num_edge)
 
 
 def neighboring_distances(place: Place) -> dict[Place, dict[Place, int]]:
     existing_places = set(graph.vertices)
-    print("Existing_places are", existing_places)
-    print("passed in place is", place)
+    # print("Existing_places are", existing_places)
+    # print("passed in place is", place)
     existing_places.remove(place)
     if len(existing_places) != 0:
         distance_dict = dist_api.distance_dict(place, list(existing_places))

@@ -5,11 +5,18 @@
     <title>Itinerary</title>
 </head>
 <body>
+    <form action ="/" method = "get">
+        <button> Revise Locations </button>
+    </form>
+
+    {% for day_itinerary in itinerary.days_itinerary %}
     <ol type="1">
+        <header> Day X</header>
         <option id="details"></option>
-        {% for location in ordered_locations %}
-            <li>{{location}}</li>
+        {% for location in day_itinerary.locations %}
+            <li>{{location.name}}</li>
         {% endfor %}
     </ol>
+    {% endfor %}
 </body>
 </html>
