@@ -14,6 +14,7 @@ app.permanent_session_lifetime = timedelta(days=5)
 @app.before_request
 def make_session_permanent():
     session.permanent = True
+    print("in session permanent")
 
 
 @app.route("/", methods=["POST", "GET"])
@@ -22,7 +23,7 @@ def home():
         session["location_name"] = []
         session["place_id"] = []
     if "place_visiting_lat_lng" not in session:
-        session["place_visiting_lat_lng"] = {"lat":None, "lng":None}
+        session["place_visiting_lat_lng"] = {"lat": None, "lng": None}
     return render_template("home.html", location_names=session["location_name"],
                            visit_place_lat=session["place_visiting_lat_lng"]["lat"],
                            visit_place_lng=session["place_visiting_lat_lng"]["lng"])
@@ -31,8 +32,17 @@ def home():
 @app.route("/receiveDestination", methods=["POST"])
 def receiveDestination():
     if request.method == "POST":
+        print("places in session before calling process_place", session["location_name"])
         place_details = request.get_json(force=True)
-        process_place(modify_graph.create_attraction(place_details))
+        process_place(modify_graph.create_attraction(place_details, session["visit_hours"]))
+    return redirect(url_for("home"))
+
+@app.route("/receiveVisitHours", methods=["POST"])
+def receiveVisitHours():
+    if request.method == "POST":
+        visit_hours = request.get_json(force=True)
+        session["visit_hours"] = visit_hours
+        print("this is the visiting hour", visit_hours)
     return redirect(url_for("home"))
 
 @app.route("/receiveHome", methods=["POST"])
@@ -62,10 +72,12 @@ def process_place(new_place: Place):
     if new_place.place_id not in session["place_id"]:
         modify_graph.add_place(new_place)
         modify_graph.add_edges(new_place)
-
+        print("places in session before appending", session["location_name"])
         session["place_id"].append(new_place.place_id)
         session["location_name"].append(new_place.name)
-    print("places in session", session["location_name"])
+    print("places in session after append", session["location_name"])
+    print("place_id in session after append", session["place_id"])
+    print("session key is", app.secret_key)
 
 
 def process_place_test(new_place: Place):

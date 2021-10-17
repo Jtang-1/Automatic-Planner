@@ -21,12 +21,13 @@ def create_home(place_details):
                 opening_hours, business_status)
 
 
-def create_attraction(place_details):
+def create_attraction(place_details, visit_hours):
     place_type = key_value("type", place_details)
     opening_hours = key_value("opening_hours", place_details)
     business_status = key_value("business_status", place_details)
+    visit_minutes = visit_hours * 60
     return Attraction(place_details["place_id"], place_details["name"], place_type,
-                      opening_hours, business_status)
+                      opening_hours, business_status, visit_minutes)
 
 
 def add_place(new_place: Place):

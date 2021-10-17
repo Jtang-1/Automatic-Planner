@@ -5,7 +5,7 @@
     <title>Itinerary</title>
 </head>
 <body>
-    <form action ="/" method = "get">
+    <form action ="/" method = "GET">
         <button> Revise Locations </button>
     </form>
 
@@ -14,7 +14,12 @@
         <header> Day X</header>
         <option id="details"></option>
         {% for location in day_itinerary.locations %}
+        <p>
             <li>{{location.name}}</li>
+            {% if loop.index0 != 0 %}
+                {{location.visit_minutes/60}}
+            {% endif %}
+        </p>
         {% endfor %}
     </ol>
     {% endfor %}

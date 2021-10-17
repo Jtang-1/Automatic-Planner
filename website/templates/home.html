@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <meta charset="UTF-8">
     <title>Title</title>
     <script>
@@ -9,38 +10,61 @@
             visiting_area_autocomplete = create_autocomplete_visiting_area_obj("visiting_area");
             visiting_area_autocomplete.addListener('place_changed', onVisitingAreaChanged);
             console.log("Test",{{visit_place_lat}},{{visit_place_lng}});
-            destination_autocomplete = create_autocomplete_obj("destination_autocomplete",{{visit_place_lat}},{{visit_place_lng}});
+            destination_autocomplete = createAutocompleteObject("destination_autocomplete",{{visit_place_lat}},{{visit_place_lng}});
             destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);
             console.log("Test",{{visit_place_lat}},{{visit_place_lng}});
-            home_autocomplete = create_autocomplete_obj("home_autocomplete",{{visit_place_lat}},{{visit_place_lng}});
+            home_autocomplete = createAutocompleteObject("home_autocomplete",{{visit_place_lat}},{{visit_place_lng}});
             home_autocomplete.addListener('place_changed', onHomePlaceChanged);
 
         }
 
         function onDestinationPlaceChanged(){
             var place = destination_autocomplete.getPlace();
+            var form = document.getElementById('destination_form');
             if (!place.place_id){
                 document.getElementById("destination_autocomplete".placeholder = "Enter a place");
             } else{
-                sendInfo(place,"/receiveDestination");
+                form.addEventListener("submit", (e) => {
+                    e.preventDefault();
+                    var hours = document.getElementById('visit_hours').value;
+                    console.log("hours value is", hours)
+                    sendVisitHours(hours,"/receiveVisitHours")
+                    setTimeout(function(){
+                        sendInfo(place,"/receiveDestination");
+                        }, 500);
+                    document.getElementById("destination_autocomplete").value = "";
+                },{once:true});
+
             }
         }
         function onHomePlaceChanged(){
             var place = home_autocomplete.getPlace();
+            var form = document.getElementById('home_form');
             if (!place.place_id){
                 document.getElementById("home_autocomplete".placeholder = "Enter a place");
             } else{
-                sendInfo(place,"/receiveHome");
+                form.addEventListener("submit", (e) => {
+                    e.preventDefault();
+                    sendInfo(place,"/receiveHome");
+                    document.getElementById("home_autocomplete").value = "";
+                },{once:true});
             }
         }
         function onVisitingAreaChanged(){
             var place = visiting_area_autocomplete.getPlace();
+            var form = document.getElementById('visiting_area_form');
             if (!place.place_id){
                 document.getElementById("visiting_area_autocomplete".placeholder = "Enter a place");
             } else{
-                sendInfo(place,"/receiveVisitingArea");
-                visiting_area = place
-                console.log("Test2", visiting_area)
+                form.addEventListener("submit", (e) => {
+                    e.preventDefault();
+                    sendInfo(place,"/receiveVisitingArea");
+                    document.getElementById("visiting_area").value = "";
+                    visiting_area = place
+                    setTimeout(function(){
+                        window.location.reload();
+                        }, 1000);
+                },{once:true});
             }
         }
 
@@ -58,16 +82,25 @@
                 const request = new XMLHttpRequest();
                 request.open("POST", url, true);
                 request.send(location);
+                setTimeout(function(){
+                    $("#test").load(" #test > *");
+                }, 1000);
+
         }
 
-        function create_autocomplete_obj(id,lat,lng){
+        function sendVisitHours(hours, url){
+            const request = new XMLHttpRequest();
+            request.open("POST", url, true);
+            request.send(hours);
+        }
+
+        function createAutocompleteObject(id,lat,lng){
             var sessionToken = new google.maps.places.AutocompleteSessionToken();
             var center = new google.maps.LatLng(lat,lng);
             var circle = new google.maps.Circle({
                 center: center,
                 radius:15000
             });
-            console.log("in create object",{{visit_place_lat}},{{visit_place_lng}});
             autocomplete= new google.maps.places.Autocomplete(
                 document.getElementById(id),
                 {   sessionToken: sessionToken,
@@ -76,7 +109,6 @@
                     fields: ["place_id", "name", "formatted_address", "opening_hours", "types", "business_status"]
                 });
             autocomplete.setBounds(circle.getBounds());
-            console.log("this is autocomplete", autocomplete);
             return autocomplete;
         }
 
@@ -97,7 +129,7 @@
     defer>
     </script>
 
-    <form action="/" method="POST">
+    <form id="visiting_area_form"action="/" method="POST">
         <div><label for="visiting_area">Where are you visiting?</label>
         <input type="text" id="visiting_area" style="width:300px">
             <button> Submit </button>
@@ -108,11 +140,11 @@
         <div> </div><label>When are you visiting?</label>
         <input type="date" id="start_date"  style="width:150px">
             through
-            <input type="date" id="end_date"  style="width:150px">
+        <input type="date" id="end_date"  style="width:150px">
         </div>
     </form>
 
-    <form action="/" method="POST">
+    <form id="home_form" action="/" method="POST">
         <div>
         <label for="home_autocomplete">Where are you staying?</label>
         <input type="text" id="home_autocomplete"  style="width:300px">
@@ -120,11 +152,12 @@
         </div>
     </form>
 
-    <form method="POST">
+    <form id="destination_form" method="POST">
         <div>
         <label for="destination_autocomplete">Destination:</label>
         <input type="text" id="destination_autocomplete"  style="width:300px">
-        <button> Add Location </button>
+        <input type="number" id="visit_hours" value=1 style="width:50px" min="0" step=.5>
+        <button type="submit"> Add Location </button>
         </div>
     </form>
 
@@ -133,12 +166,13 @@
     </form>
 </head>
 <body>
+    <div id="test">
     <ol type="1">
         <option id="details"></option>
         {% for location in location_names %}
             <option>{{location}}</option>
         {% endfor %}
     </ol>
-
+    </div>
 </body>
 </html>

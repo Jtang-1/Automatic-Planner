@@ -1,5 +1,5 @@
 from place_model.place import Place
-default_visit_minutes = 400  # minutes
+default_visit_minutes = 900  # minutes
 
 
 class Attraction(Place):
