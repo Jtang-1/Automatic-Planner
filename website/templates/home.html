@@ -28,9 +28,9 @@
                     e.preventDefault();
                     var hours = document.getElementById('visit_hours').value;
                     console.log("hours value is", hours)
-                    sendVisitHours(hours,"/receiveVisitHours")
+                    sendInfo(hours,"/receiveVisitHours")
                     setTimeout(function(){
-                        sendInfo(place,"/receiveDestination");
+                        sendPlaceInfo(place,"/receiveDestination");
                         }, 500);
                     document.getElementById("destination_autocomplete").value = "";
                 },{once:true});
@@ -45,7 +45,7 @@
             } else{
                 form.addEventListener("submit", (e) => {
                     e.preventDefault();
-                    sendInfo(place,"/receiveHome");
+                    sendPlaceInfo(place,"/receiveHome");
                     document.getElementById("home_autocomplete").value = "";
                 },{once:true});
             }
@@ -58,7 +58,7 @@
             } else{
                 form.addEventListener("submit", (e) => {
                     e.preventDefault();
-                    sendInfo(place,"/receiveVisitingArea");
+                    sendPlaceInfo(place,"/receiveVisitingArea");
                     document.getElementById("visiting_area").value = "";
                     visiting_area = place
                     setTimeout(function(){
@@ -68,7 +68,7 @@
             }
         }
 
-        function sendInfo(place,url){
+        function sendPlaceInfo(place,url){
             document.getElementById("details").innerHTML = place.name;
                 let location = JSON.stringify({
                     "name":place.name,
@@ -88,10 +88,12 @@
 
         }
 
-        function sendVisitHours(hours, url){
+        function sendInfo(info, url){
             const request = new XMLHttpRequest();
             request.open("POST", url, true);
-            request.send(hours);
+            console.log("time in sendInfo is", info)
+            console.log("type in send info is", typeof info)
+            request.send(info);
         }
 
         function createAutocompleteObject(id,lat,lng){
@@ -123,6 +125,43 @@
                 });
             return autocomplete;
         }
+
+        function onStartDateChanged(){
+            var date = document.getElementById('start_date').value;
+            console.log("start_date is", date)
+            let start_date = JSON.stringify({
+                    "start_date":date
+                    });
+            sendInfo(start_date, "/receiveStartDate")
+        }
+
+        function onEndDateChanged(){
+            var date = document.getElementById('end_date').value;
+            console.log("end_date is", date)
+            let end_date = JSON.stringify({
+                    "end_date":date
+                    });
+            sendInfo(end_date, "/receiveEndDate")
+        }
+
+        function onLeaveTimeChanged(){
+            var time = document.getElementById('leave_time').value;
+            console.log("leave time is", time)
+            let leave_time = JSON.stringify({
+                    "leave_time":time
+                    });
+            sendInfo(leave_time, "/receiveDayStartTime")
+        }
+
+        function onReturnTimeChanged(){
+            var time = document.getElementById('return_time').value;
+            console.log("return time is", time)
+            let return_time = JSON.stringify({
+                    "return_time":time
+                    });
+            sendInfo(return_time, "/receiveDayEndTime")
+        }
+
     </script>
     <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBncbwIJ2Ug0E7oPoYubcplGGlD-dEuo98&libraries=places&callback=initMap"
@@ -138,19 +177,26 @@
 
     <form action="/" method="POST">
         <div> </div><label>When are you visiting?</label>
-        <input type="date" id="start_date"  style="width:150px">
+        <input type="date" id="start_date"  style="width:150px" onchange="onStartDateChanged()">
             through
-        <input type="date" id="end_date"  style="width:150px">
+        <input type="date" id="end_date"  style="width:150px" onchange="onEndDateChanged()">
         </div>
     </form>
 
+    <div>
     <form id="home_form" action="/" method="POST">
-        <div>
-        <label for="home_autocomplete">Where are you staying?</label>
-        <input type="text" id="home_autocomplete"  style="width:300px">
+            <label for="home_autocomplete">Where are you staying?</label>
+            <input type="text" id="home_autocomplete" style="width:300px">
+
             <button> Add </button>
-        </div>
     </form>
+
+        <form id="home_time_form" action="/" method="POST">
+            <input type="time" id="leave_time" style="width:100px" onchange="onLeaveTimeChanged()">
+            <input type="time" id="return_time" style="width:100px" onchange="onReturnTimeChanged()">
+
+        </form>
+    </div>
 
     <form id="destination_form" method="POST">
         <div>

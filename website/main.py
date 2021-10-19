@@ -4,6 +4,8 @@ import secrets
 from place_model.place import Place
 from website import modify_graph
 import shortest_path
+import datetime
+import jsonpickle
 
 # http://127.0.0.1:5000
 app = Flask(__name__)
@@ -52,6 +54,51 @@ def receiveHome():
         process_place(modify_graph.create_home(place_details))
     return redirect(url_for("home"))
 
+@app.route("/receiveStartDate", methods=["POST"])
+def receiveStartDate():
+    if request.method == "POST":
+        start_date = request.get_json(force=True)["start_date"]
+        year = int(start_date.split("-")[0])
+        month = int(start_date.split("-")[1])
+        day = int(start_date.split("-")[2])
+        start_date = datetime.datetime(year, month, day)
+        session["start_date"] = jsonpickle.encode(start_date)
+    return redirect(url_for("home"))
+
+@app.route("/receiveEndDate", methods=["POST"])
+def receiveEndDate():
+    if request.method == "POST":
+        end_date = request.get_json(force=True)["end_date"]
+        year = int(end_date.split("-")[0])
+        month = int(end_date.split("-")[1])
+        day = int(end_date.split("-")[2])
+        end_date = datetime.datetime(year, month, day)
+        print("end date is", end_date)
+        session["end_date"] = jsonpickle.encode(end_date)
+    return redirect(url_for("home"))
+
+@app.route("/receiveDayStartTime", methods=["POST"])
+def receiveDayStartTime():
+    if request.method == "POST":
+        start_time = request.get_json(force=True)["leave_time"]
+        hour = int(start_time.split(":")[0])
+        minute = int(start_time.split(":")[1])
+        start_time = datetime.time(hour, minute)
+        print('start time is', start_time)
+        session["start_time"] = jsonpickle.encode(start_time)
+    return redirect(url_for("home"))
+
+@app.route("/receiveDayEndTime", methods=["POST"])
+def receiveDayEndTime():
+    if request.method == "POST":
+        end_time = request.get_json(force=True)["return_time"]
+        hour = int(end_time.split(":")[0])
+        minute = int(end_time.split(":")[1])
+        end_time = datetime.time(hour, minute)
+        print('end time is', end_time)
+        session["end_time"] = jsonpickle.encode(end_time)
+    return redirect(url_for("home"))
+
 @app.route("/receiveVisitingArea", methods=["POST"])
 def receiveVisitingArea():
     if request.method == "POST":
@@ -64,6 +111,7 @@ def receiveVisitingArea():
 
 @app.route("/results", methods=["GET"])
 def results():
+
     itinerary = shortest_path.create_itinerary()
     return render_template("results.html", itinerary=itinerary)
 

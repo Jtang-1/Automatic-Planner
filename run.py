@@ -4,6 +4,7 @@ import jsonpickle
 from place_model import google_map_places as places_api
 import copy
 import pprint
+import datetime
 
 
 class Object1:
@@ -74,7 +75,14 @@ def run():
     object2.test_print("wordword")
     object2.test_print2()
 
+    time = datetime.datetime(2021,10,18,8,2)
+    time2 = datetime.datetime(2021,10,18,8,2)
 
+    encoded_time = jsonpickle.encode(time)
+    decoded_time = jsonpickle.decode(encoded_time)
+    print(decoded_time)
+    if decoded_time==time2:
+        print("time is the same")
 
 
 if __name__ == '__main__':
