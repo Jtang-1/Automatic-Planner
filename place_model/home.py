@@ -5,4 +5,5 @@ class Home(Place):
     def __init__(self, place_id: str, name: str,
                  opening_hours: dict = None, business_status: str = None):
         self.place_type = "home"
+        self.visit_minutes = None
         super().__init__(place_id, name, self.place_type, opening_hours, business_status)

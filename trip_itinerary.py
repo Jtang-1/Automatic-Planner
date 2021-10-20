@@ -1,12 +1,23 @@
 from day_itinerary import DayItinerary
+import datetime
 
 
 class TripItinerary:
-    def __init__(self, trip_days: int, days_itinerary: [DayItinerary] = None):
-        self.days_itinerary = []
-        self.trip_days = trip_days
+    def __init__(self, start_date: datetime.datetime, end_date: datetime.datetime, days_itinerary: [DayItinerary] = None):
+        self.days_itinerary = {}
+        self.start_date = start_date
+        self.current_date = start_date
+        self.end_date = end_date
+        self.trip_days = (end_date - start_date).days + 1
         if days_itinerary:
-            self.days_itinerary = days_itinerary
+            self.add_day_itinerary(days_itinerary)
 
-    def add_day_itinerary(self, day_schedule):
-        self.days_itinerary.append(day_schedule)
+    def add_day_itinerary(self, day_schedule: DayItinerary):
+        if isinstance(day_schedule, (list, set, tuple)):
+            for schedule in day_schedule:
+                self.days_itinerary[schedule.start_date_time.strftime('%Y-%m-%d')] = day_schedule
+        else:
+            self.days_itinerary[day_schedule.start_date_time.strftime('%Y-%m-%d')] = day_schedule
+
+    def next_day(self):
+        self.current_date += datetime.timedelta(days=1)

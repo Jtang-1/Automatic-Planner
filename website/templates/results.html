@@ -9,7 +9,7 @@
         <button> Revise Locations </button>
     </form>
 
-    {% for day_itinerary in itinerary.days_itinerary %}
+    {% for day_itinerary in itinerary.days_itinerary.values() %}
     <ol type="1">
         <header> Day X</header>
         <option id="details"></option>

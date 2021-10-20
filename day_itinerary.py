@@ -3,11 +3,12 @@ import datetime
 
 
 class DayItinerary:
-    #def __init__(self, start_date_time: datetime.datetime, end_date_time: datetime.datetime, locations: [Place] = None):
-    def __init__(self, day_minutes: int, locations: [Place] = None):
+    def __init__(self, start_date_time: datetime.datetime, end_date_time: datetime.datetime,
+                 locations: [Place] = None):
         self.locations = []
-        #self.day_minutes = ((end_date_time - start_date_time).total_seconds()/60)
-        self.day_minutes = day_minutes
+        self.start_date_time = start_date_time
+        self.end_date_time = end_date_time
+        self.day_minutes = int((end_date_time - start_date_time).total_seconds()/60)
         self.minutes_spent = 0
         if locations:
             self.locations = locations
