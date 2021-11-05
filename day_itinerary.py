@@ -7,9 +7,9 @@ class DayItinerary:
                  locations: [Place] = None):
         self.locations = []
         self.start_date_time = start_date_time
+        self.current_time = start_date_time
         self.end_date_time = end_date_time
         self.day_minutes = int((end_date_time - start_date_time).total_seconds()/60)
-        self.minutes_spent = 0
         if locations:
             self.locations = locations
 
@@ -20,4 +20,9 @@ class DayItinerary:
             self.locations.append(location)
 
     def add_minutes_spent(self, minutes):
-        self.minutes_spent += minutes
+        minutes_spent = datetime.timedelta(minutes = minutes)
+        self.current_time += minutes_spent
+
+    @property
+    def minutes_spent(self):
+        return (self.current_time - self.start_date_time).total_seconds() / 60

@@ -61,6 +61,12 @@ class PlaceGraph:
             self._neighbors[edge.place1].remove(edge)
             self._neighbors[edge.place2].remove(edge)
 
+    def get_edge(self, origin: Place, destination: Place):
+        neighbors_edges = self.neighbors_edges(origin)
+        for neighbor_edge in neighbors_edges:
+            if neighbor_edge.place1 == destination or neighbor_edge.place2 == destination:
+                return neighbor_edge
+
     def remove_vertex(self, vertex: Place):
         edges_to_delete = list(self.neighbors_edges(vertex))
         for e in edges_to_delete:

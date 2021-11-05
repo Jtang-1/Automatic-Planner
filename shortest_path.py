@@ -1,5 +1,5 @@
 from typing import Union
-
+import math
 from website import modify_graph
 from place_model.place import Place
 from place_model.home import Home
@@ -7,6 +7,7 @@ from trip_itinerary import TripItinerary
 from place_model.place_graph import PlaceGraph
 from place_model.attraction import Attraction
 from day_itinerary import DayItinerary
+from place_model import google_map_distance_matrix as dist_api
 import copy
 
 graph = modify_graph.get_graph()
@@ -16,10 +17,10 @@ skipped_places = set()
 
 def create_itinerary(itinerary: TripItinerary) -> TripItinerary:
     global visited_places
-    print("visited places at start are", visited_places)
+    #print("visited places at start are", visited_places)
     visited_places = {graph.home}
     for day_plan in itinerary.days_itinerary.values():
-        print("day_plan day length is", day_plan.day_minutes/60)
+        #print("day_plan day length is", day_plan.day_minutes / 60)
         itinerary.add_day_itinerary(create_day_itinerary(day_plan))
         if len(visited_places) == graph.num_vertices:
             print("visited places are", visited_places)
@@ -35,10 +36,10 @@ def create_day_itinerary(day_plan: DayItinerary) -> DayItinerary:  # will need t
     visited_places.add(farthest_neighbor)
     # print("places in graph are", [place.name for place in graph.vertices])
     # print("home is", home.name)
-    print("farthest neighbor is", farthest_neighbor.name)
+    # print("farthest neighbor is", farthest_neighbor.name)
     day_plan.add_minutes_spent(farthest_neighbor.visit_minutes)
     day_plan = day_shortest_route(day_plan)
-    print("day itinerary is", [(count, place.name) for count, place in enumerate(day_plan.locations)])
+    # print("day itinerary is", [(count, place.name) for count, place in enumerate(day_plan.locations)])
     return day_plan
 
 
@@ -46,26 +47,49 @@ def day_shortest_route(day_plan: DayItinerary) -> DayItinerary:
     global skipped_places
     total_path_connections = graph.num_vertices - len(visited_places)
     day_minutes = day_plan.day_minutes
-    current_place = day_plan.locations[-1]
+    prev_place = day_plan.locations[-1]
     for _ in range(total_path_connections):
-        next_place = closest_unvisited_not_home_neighbor(current_place)
+        current_place = day_plan.locations[-1]
+        next_place = closest_unvisited_not_home_neighbor(prev_place)
         if day_plan.minutes_spent + next_place.visit_minutes > day_minutes:
             skipped_places.add(next_place)
-            current_place = next_place
+            prev_place = next_place
             continue
+        transport_info = shortest_transportation(day_plan, next_place)
+        transport_time, transport_mode = transport_info["transport_time"], transport_info["mode"]
+        if day_plan.minutes_spent + next_place.visit_minutes + transport_time > day_minutes:
+            skipped_places.add(next_place)
+            prev_place = next_place
+            continue
+        print(current_place.name, "to", next_place.name, "shortest transport + time is", transport_info)
         day_plan.add_place(next_place)
         visited_places.add(next_place)
         day_plan.add_minutes_spent(next_place.visit_minutes)
-        current_place = next_place
+        modify_graph.add_edge_transport_time(current_place, next_place, transport_time, transport_mode)
+        print("edge tranport value is", graph.get_edge(current_place, next_place).get_transport_time(next_place))
+        prev_place = next_place
     # for count, place in enumerate(visit_order):
     #     print(count, place.name)
     skipped_places = set()
     return day_plan
 
 
+def shortest_transportation(day_plan: DayItinerary, next_place: Place) -> {int, str}:
+    modes = {"driving", "walking", "transit"}
+    departure_time = day_plan.current_time
+    current_place = day_plan.locations[-1]
+    transport_time = float('inf')
+    for mode in modes:
+        new_transport_time = dist_api.find_travel_time(current_place, next_place, mode, departure_time)
+        if new_transport_time is not None and new_transport_time < transport_time:
+            transport_time = new_transport_time
+            fastest_mode = mode
+    return {"transport_time": math.ceil(transport_time / 60), "mode": fastest_mode}
+
+
 def closest_unvisited_not_home_neighbor(node: Place) -> Union[Place, Attraction]:
     # print("vertices of copies", list(graph.vertices))
-    print("closest_not_hoome_neighbor passed in node", node.name)
+    # print("closest_not_home_neighbor passed in node", node.name)
     neighbors_edges = graph.neighbors_edges(node)
     closest_neighbor_dist = float('inf')
     closest_neighbor = None
@@ -82,7 +106,7 @@ def closest_unvisited_not_home_neighbor(node: Place) -> Union[Place, Attraction]
             continue
         closest_neighbor_dist = edge.distance
 
-    print("closest neighbor", closest_neighbor.name,  closest_neighbor_dist)
+    # print("closest neighbor", closest_neighbor.name,  closest_neighbor_dist)
     return closest_neighbor
 
 
@@ -97,7 +121,7 @@ def farthest_not_home_neighbor(node: Place) -> Union[Place, Attraction]:
             continue
         if node1 != node and not isinstance(node1, Home) and not is_visited(node1):
             farthest_neighbor = edge.place1
-        elif node2 != node and not isinstance(node2, Home)and not is_visited(node2):
+        elif node2 != node and not isinstance(node2, Home) and not is_visited(node2):
             farthest_neighbor = edge.place2
         else:
             continue

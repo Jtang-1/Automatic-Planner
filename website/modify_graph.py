@@ -46,6 +46,11 @@ def add_edges(new_place: Place):
     #print(graph.num_edge)
 
 
+def add_edge_transport_time(origin: Place, destination: Place, transport_time: int, transport_mode: str):
+    interested_edge = graph.get_edge(origin, destination)
+    interested_edge.set_transport_info(destination, transport_time, transport_mode)
+
+
 def neighboring_distances(place: Place) -> dict[Place, dict[Place, int]]:
     existing_places = set(graph.vertices)
     # print("Existing_places are", existing_places)
