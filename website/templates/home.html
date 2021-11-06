@@ -17,15 +17,23 @@
             home_autocomplete.addListener('place_changed', onHomePlaceChanged);
 
         }
-
+        window.globalDestinationPlaceChangedCalledTimes = 0;
         function onDestinationPlaceChanged(){
+            window.globalDestinationPlaceChangedCalledTimes += 1
+            console.log("global tracker", window.globalDestinationPlaceChangedCalledTimes)
             var place = destination_autocomplete.getPlace();
             var form = document.getElementById('destination_form');
-            if (!place.place_id){
-                document.getElementById("destination_autocomplete".placeholder = "Enter a place");
-            } else{
-                form.addEventListener("submit", (e) => {
-                    e.preventDefault();
+            window.globalDestinationPlaceChangedIterator = 1;
+            var eventWithSubmit = function(evt){
+                if(form.getAttribute('eventWithSubmit') == 'true'){
+                    evt.preventDefault();
+                    console.log("IN EVENT")
+                    if (window.globalDestinationPlaceChangedIterator != window.globalDestinationPlaceChangedCalledTimes){
+                        console.log("In second IF global tracker", window.globalDestinationPlaceChangedCalledTimes)
+                        console.log("In second IF iterator", window.globalDestinationPlaceChangedIterator)
+                        window.globalDestinationPlaceChangedIterator += 1;
+                        return;
+                    }
                     var hours = document.getElementById('visit_hours').value;
                     console.log("hours value is", hours)
                     sendInfo(hours,"/receiveVisitHours")
@@ -33,38 +41,79 @@
                         sendPlaceInfo(place,"/receiveDestination");
                         }, 500);
                     document.getElementById("destination_autocomplete").value = "";
-                },{once:true});
+                    console.log("form sent");
+                    form.setAttribute('eventWithSubmit','false');
+                    window.globalDestinationPlaceChangedCalledTimes = 0
+                }
+            };
 
+            if (!place.place_id){
+                document.getElementById("destination_autocomplete".placeholder = "Enter a place");
+            } else{
+                form.addEventListener("submit", eventWithSubmit ,{once:true});
+                form.setAttribute('eventWithSubmit','true');
             }
         }
+
+        window.globalHomePlaceChangedCalledTimes = 0;
         function onHomePlaceChanged(){
+            window.globalHomePlaceChangedCalledTimes += 1;
             var place = home_autocomplete.getPlace();
             var form = document.getElementById('home_form');
+            window.globalHomePlaceChangedIterator = 1;
+            var eventWithSubmit = function(evt){
+                if(form.getAttribute('eventWithSubmit') == 'true'){
+                    evt.preventDefault();
+                    if (window.globalHomePlaceChangedIterator != window.globalHomePlaceChangedCalledTimes){
+                        console.log("In second IF global tracker", window.globalHomePlaceChangedCalledTimes)
+                        console.log("In second IF iterator", window.globalHomePlaceChangedIterator)
+                        window.globalHomePlaceChangedIterator += 1;
+                        return;
+                    }
+                    sendPlaceInfo(place,"/receiveHome");
+                    document.getElementById("home_autocomplete").value = "";
+                    form.setAttribute('eventWithSubmit','false');
+                    window.globalHomePlaceChangedCalledTimes = 0;
+                }
+            }
             if (!place.place_id){
                 document.getElementById("home_autocomplete".placeholder = "Enter a place");
             } else{
-                form.addEventListener("submit", (e) => {
-                    e.preventDefault();
-                    sendPlaceInfo(place,"/receiveHome");
-                    document.getElementById("home_autocomplete").value = "";
-                },{once:true});
+                form.addEventListener("submit", eventWithSubmit,{once:true});
+                form.setAttribute('eventWithSubmit','true');
             }
         }
+
+        window.globalVisitingAreaChangedCalledTimes = 0;
         function onVisitingAreaChanged(){
+            window.globalVisitingAreaChangedCalledTimes += 1;
             var place = visiting_area_autocomplete.getPlace();
             var form = document.getElementById('visiting_area_form');
-            if (!place.place_id){
-                document.getElementById("visiting_area_autocomplete".placeholder = "Enter a place");
-            } else{
-                form.addEventListener("submit", (e) => {
-                    e.preventDefault();
+            window.globalVisitingAreaChangedCalledIterator = 1;
+            var eventWithSubmit = function(evt){
+                if(form.getAttribute('eventWithSubmit') == 'true'){
+                    evt.preventDefault();
+                    if (window.globalVisitingAreaChangedCalledIterator != window.globalVisitingAreaChangedCalledTimes){
+                        console.log("In second IF global tracker", window.globalVisitingAreaChangedCalledTimes)
+                        console.log("In second IF iterator", window.globalVisitingAreaChangedCalledIterator)
+                        window.globalVisitingAreaChangedCalledIterator += 1;
+                        return;
+                    }
                     sendPlaceInfo(place,"/receiveVisitingArea");
                     document.getElementById("visiting_area").value = "";
-                    visiting_area = place
                     setTimeout(function(){
                         window.location.reload();
                         }, 1000);
-                },{once:true});
+                    form.setAttribute('eventWithSubmit','false');
+                    window.globalVisitingAreaChangedCalledTimes = 0;
+                }
+            }
+            if (!place.place_id){
+                document.getElementById("visiting_area_autocomplete".placeholder = "Enter a place");
+            } else{
+                form.addEventListener("submit", eventWithSubmit, {once:true});
+                form.setAttribute('eventWithSubmit','true');
+
             }
         }
 
