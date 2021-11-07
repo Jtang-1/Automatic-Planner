@@ -49,7 +49,7 @@ def add_edges(new_place: Place):
 
 def add_edge_transport_time(origin: Place, destination: Place, transport_time: int, transport_mode: str):
     interested_edge = graph.get_edge(origin, destination)
-    interested_edge.set_transport_info(destination, transport_time, transport_mode)
+    interested_edge.set_info_transport_to(destination, transport_time, transport_mode)
 
 
 def neighboring_distances(place: Place) -> dict[Place, dict[Place, int]]:

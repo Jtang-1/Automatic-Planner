@@ -29,19 +29,18 @@ def create_itinerary(itinerary: TripItinerary) -> TripItinerary:
 
 
 def create_day_itinerary(day_plan: DayItinerary) -> DayItinerary:  # will need to pass in day of the week
-    home = graph.home
-    day_plan.add_place(home)
-    farthest_neighbor = farthest_not_home_neighbor(home)
-    day_plan.add_place(farthest_neighbor)
-    visited_places.add(farthest_neighbor)
-    # print("places in graph are", [place.name for place in graph.vertices])
-    # print("home is", home.name)
-    # print("farthest neighbor is", farthest_neighbor.name)
-    day_plan.add_minutes_spent(farthest_neighbor.visit_minutes)
+    day_plan = add_first_destination(day_plan)
     day_plan = day_shortest_route(day_plan)
     # print("day itinerary is", [(count, place.name) for count, place in enumerate(day_plan.locations)])
     return day_plan
 
+
+def add_first_destination(day_plan: DayItinerary) -> DayItinerary:
+    home = graph.home
+    day_plan.add_place(home)
+    farthest_neighbor = farthest_not_home_neighbor(home)
+    add_location_to_day_itinerary(day_plan, home, farthest_neighbor)
+    return day_plan
 
 def day_shortest_route(day_plan: DayItinerary) -> DayItinerary:
     global skipped_places
@@ -66,7 +65,8 @@ def day_shortest_route(day_plan: DayItinerary) -> DayItinerary:
         visited_places.add(next_place)
         day_plan.add_minutes_spent(next_place.visit_minutes)
         modify_graph.add_edge_transport_time(current_place, next_place, transport_time, transport_mode)
-        print("edge tranport value is", graph.get_edge(current_place, next_place).get_transport_time(next_place))
+        day_plan.add_edge(graph.get_edge(current_place, next_place))
+        print("edge tranport value is", graph.get_edge(current_place, next_place).get_time_transport_to(next_place))
         prev_place = next_place
     # for count, place in enumerate(visit_order):
     #     print(count, place.name)
@@ -130,6 +130,21 @@ def farthest_not_home_neighbor(node: Place) -> Union[Place, Attraction]:
     # print("farthest neighbor", farthest_neighbor.name, farthest_neighbor_dist)
     return farthest_neighbor
 
+
+def add_location_to_day_itinerary(day_plan: DayItinerary, current_place: Place, next_place: Place) -> DayItinerary:
+    day_plan = add_transport_to_day_itinerary(day_plan, current_place, next_place)
+    day_plan.add_place(next_place)
+    visited_places.add(next_place)
+    day_plan.add_minutes_spent(next_place.visit_minutes)
+    day_plan.add_edge(graph.get_edge(current_place, next_place))
+    return day_plan
+
+
+def add_transport_to_day_itinerary(day_plan: DayItinerary, current_place: Place, next_place: Place) -> DayItinerary:
+    transport_info = shortest_transportation(day_plan, next_place)
+    transport_time, transport_mode = transport_info["transport_time"], transport_info["mode"]
+    modify_graph.add_edge_transport_time(current_place, next_place, transport_time, transport_mode)
+    return day_plan
 
 def is_visited(place: Place):
     if place in visited_places or place in skipped_places:

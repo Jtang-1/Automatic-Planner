@@ -6,19 +6,28 @@ class Edge:
         self.transport_time = {place1: None, place2: None}
         self.transport_mode = {place1: None, place2: None}
 
-    def set_transport_time(self, destination, transport_time: int):
+    def set_time_transport_to(self, destination, transport_time: int):
         self.transport_time[destination] = transport_time
 
-    def get_transport_time(self, destination):
+    def get_time_transport_to(self, destination):
         return self.transport_time[destination]
 
-    def set_transport_mode(self, destination, transport_mode: str):
+    def set_mode_transport_to(self, destination, transport_mode: str):
         self.transport_mode[destination] = transport_mode
 
-    def get_transport_mode(self, destination):
+    def get_mode_transport_to(self, destination):
         return self.transport_mode[destination]
 
-    def set_transport_info(self,destination, transport_time:int, transport_mode:str):
-        self.set_transport_time(destination, transport_time)
-        self.set_transport_mode(destination, transport_mode)
+    def set_info_transport_to(self, destination, transport_time: int, transport_mode: str):
+        self.set_time_transport_to(destination, transport_time)
+        self.set_mode_transport_to(destination, transport_mode)
 
+    def is_edge_for(self, place1, place2):
+        print("place1 is", place1)
+        print("place2 is", place2)
+        print("self.place1 is", self.place1)
+        print("self.place2 is", self.place2)
+        if self.place1 == place1 or self.place1 == place2:
+            if self.place2 == place1 or self.place2 == place2:
+                return True
+        return False
