@@ -30,6 +30,15 @@ class DayItinerary:
     def minutes_spent(self):
         return (self.current_time - self.start_date_time).total_seconds() / 60
 
+    @property
+    def date(self):
+        return self.current_time.date()
+
+    def is_empty(self):
+        if len(self.locations):
+            return False
+        return True
+
     def add_edge(self, transport: Edge):
         self.transport.append(transport)
 

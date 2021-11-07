@@ -9,6 +9,7 @@ class TripItinerary:
         self.current_date = start_date
         self.end_date = end_date
         self.trip_days = (end_date - start_date).days + 1
+        self.nonvisted_locations = None
         if days_itinerary:
             self.add_day_itinerary(days_itinerary)
 
@@ -21,3 +22,6 @@ class TripItinerary:
 
     def next_day(self):
         self.current_date += datetime.timedelta(days=1)
+
+    def add_nonvisited_locations(self, places: set):
+        self.nonvisted_locations = places

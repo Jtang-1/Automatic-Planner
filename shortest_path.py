@@ -23,9 +23,16 @@ def create_itinerary(itinerary: TripItinerary) -> TripItinerary:
     for day_plan in itinerary.days_itinerary.values():
         #print("day_plan day length is", day_plan.day_minutes / 60)
         itinerary.add_day_itinerary(create_day_itinerary(day_plan))
+        print("In for loop of create itinerary")
         if len(visited_places) == graph.num_vertices:
-            print("visited places are", visited_places)
             break
+    itinerary.add_nonvisited_locations(graph.vertices ^ visited_places)
+    for visited_place in visited_places:
+        print("visited places is", visited_place.name)
+    for location in itinerary.nonvisted_locations:
+        print("nonvisited locations is", location.name)
+
+
     return itinerary
 
 
@@ -33,7 +40,6 @@ def create_day_itinerary(day_plan: DayItinerary) -> DayItinerary:  # will need t
     add_first_destination(day_plan)
     day_shortest_route(day_plan)
     back_home(day_plan)
-    print("HERE")
 
     # print("day itinerary is", [(count, place.name) for count, place in enumerate(day_plan.locations)])
     return day_plan
@@ -80,9 +86,6 @@ def shortest_transportation(day_plan: DayItinerary, next_place: Place) -> {int, 
     departure_time = day_plan.current_time
     current_place = day_plan.locations[-1]
     if isinstance(next_place, Home):
-        print("in Home instance, shortest transportation")
-        print("current place is", current_place.name)
-        print("current place visit time is", current_place.visit_minutes)
         departure_time += datetime.timedelta(minutes=current_place.visit_minutes)
     transport_time = float('inf')
     for mode in modes:

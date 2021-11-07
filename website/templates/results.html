@@ -11,7 +11,9 @@
 
     {% for day_itinerary in itinerary.days_itinerary.values() %}
     <ol type="1">
-        <header> Day X</header>
+        {% if day_itinerary.is_empty() == false %}
+        <header>Date: {{day_itinerary.date}}</header>
+        {% endif %}
         <option id="details"></option>
         {% for location in day_itinerary.locations %}
         <p>
@@ -30,6 +32,13 @@
         </p>
         {% endfor %}
     </ol>
+    {% endfor %}
+
+    {% for location in itinerary.nonvisted_locations %}
+    <header> Unvisted Place(s)</header>
+    <ul>
+        <li> {{location.name}} {{location.visit_minutes/60}} </li>
+    </ul>
     {% endfor %}
 </body>
 </html>

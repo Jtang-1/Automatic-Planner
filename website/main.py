@@ -178,7 +178,7 @@ def process_place_test(new_place: Place):
 if __name__ == "__main__":
     app.run(debug=True)
     # start_date_test = datetime.datetime(2021, 11, 22)
-    # end_date_test = datetime.datetime(2021, 11, 28)
+    # end_date_test = datetime.datetime(2021, 11, 24)
     # start_time_test = datetime.time(8)
     # end_time_test = datetime.time(22)
     #
