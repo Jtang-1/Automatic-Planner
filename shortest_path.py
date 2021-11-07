@@ -4,6 +4,7 @@ from website import modify_graph
 from place_model.place import Place
 from place_model.home import Home
 from trip_itinerary import TripItinerary
+import datetime
 from place_model.place_graph import PlaceGraph
 from place_model.attraction import Attraction
 from day_itinerary import DayItinerary
@@ -29,20 +30,16 @@ def create_itinerary(itinerary: TripItinerary) -> TripItinerary:
 
 
 def create_day_itinerary(day_plan: DayItinerary) -> DayItinerary:  # will need to pass in day of the week
-    day_plan = add_first_destination(day_plan)
-    day_plan = day_shortest_route(day_plan)
+    add_first_destination(day_plan)
+    day_shortest_route(day_plan)
+    back_home(day_plan)
+    print("HERE")
+
     # print("day itinerary is", [(count, place.name) for count, place in enumerate(day_plan.locations)])
     return day_plan
 
 
-def add_first_destination(day_plan: DayItinerary) -> DayItinerary:
-    home = graph.home
-    day_plan.add_place(home)
-    farthest_neighbor = farthest_not_home_neighbor(home)
-    add_location_to_day_itinerary(day_plan, home, farthest_neighbor)
-    return day_plan
-
-def day_shortest_route(day_plan: DayItinerary) -> DayItinerary:
+def day_shortest_route(day_plan: DayItinerary):
     global skipped_places
     total_path_connections = graph.num_vertices - len(visited_places)
     day_minutes = day_plan.day_minutes
@@ -54,30 +51,39 @@ def day_shortest_route(day_plan: DayItinerary) -> DayItinerary:
             skipped_places.add(next_place)
             prev_place = next_place
             continue
-        transport_info = shortest_transportation(day_plan, next_place)
-        transport_time, transport_mode = transport_info["transport_time"], transport_info["mode"]
-        if day_plan.minutes_spent + next_place.visit_minutes + transport_time > day_minutes:
+        next_place_transport_time, next_place_transport_mode = next_place_transport_info(day_plan, next_place)
+        if day_plan.minutes_spent + next_place.visit_minutes + next_place_transport_time > day_minutes:
             skipped_places.add(next_place)
             prev_place = next_place
             continue
-        print(current_place.name, "to", next_place.name, "shortest transport + time is", transport_info)
+        home_transport_time, next_place_transport_mode = next_place_transport_info(day_plan, next_place)
+        if day_plan.minutes_spent + next_place.visit_minutes + next_place_transport_time + home_transport_time > day_minutes:
+            skipped_places.add(next_place)
+            prev_place = next_place
+            continue
+
+        print(current_place.name, "to", next_place.name, "shortest transport + time is", next_place_transport_info)
         day_plan.add_place(next_place)
         visited_places.add(next_place)
         day_plan.add_minutes_spent(next_place.visit_minutes)
-        modify_graph.add_edge_transport_time(current_place, next_place, transport_time, transport_mode)
+        modify_graph.add_edge_transport_time(current_place, next_place, next_place_transport_time, next_place_transport_mode)
         day_plan.add_edge(graph.get_edge(current_place, next_place))
         print("edge tranport value is", graph.get_edge(current_place, next_place).get_time_transport_to(next_place))
         prev_place = next_place
     # for count, place in enumerate(visit_order):
     #     print(count, place.name)
     skipped_places = set()
-    return day_plan
 
 
 def shortest_transportation(day_plan: DayItinerary, next_place: Place) -> {int, str}:
     modes = {"driving", "walking", "transit"}
     departure_time = day_plan.current_time
     current_place = day_plan.locations[-1]
+    if isinstance(next_place, Home):
+        print("in Home instance, shortest transportation")
+        print("current place is", current_place.name)
+        print("current place visit time is", current_place.visit_minutes)
+        departure_time += datetime.timedelta(minutes=current_place.visit_minutes)
     transport_time = float('inf')
     for mode in modes:
         new_transport_time = dist_api.find_travel_time(current_place, next_place, mode, departure_time)
@@ -131,20 +137,38 @@ def farthest_not_home_neighbor(node: Place) -> Union[Place, Attraction]:
     return farthest_neighbor
 
 
-def add_location_to_day_itinerary(day_plan: DayItinerary, current_place: Place, next_place: Place) -> DayItinerary:
-    day_plan = add_transport_to_day_itinerary(day_plan, current_place, next_place)
+def add_first_destination(day_plan: DayItinerary):
+    home = graph.home
+    day_plan.add_place(home)
+    farthest_neighbor = farthest_not_home_neighbor(home)
+    add_location_to_day_itinerary(day_plan, home, farthest_neighbor)
+
+
+def back_home(day_plan: DayItinerary):
+    current_location = day_plan.locations[-1]
+    add_location_to_day_itinerary(day_plan, current_location, graph.home)
+
+
+def add_location_to_day_itinerary(day_plan: DayItinerary, current_place: Place, next_place: Place):
+    add_transport_to_day_itinerary(day_plan, current_place, next_place)
     day_plan.add_place(next_place)
-    visited_places.add(next_place)
-    day_plan.add_minutes_spent(next_place.visit_minutes)
     day_plan.add_edge(graph.get_edge(current_place, next_place))
-    return day_plan
+    if not isinstance(next_place, Home):
+        visited_places.add(next_place)
+        day_plan.add_minutes_spent(next_place.visit_minutes)
 
 
-def add_transport_to_day_itinerary(day_plan: DayItinerary, current_place: Place, next_place: Place) -> DayItinerary:
+def add_transport_to_day_itinerary(day_plan: DayItinerary, current_place: Place, next_place: Place):
     transport_info = shortest_transportation(day_plan, next_place)
     transport_time, transport_mode = transport_info["transport_time"], transport_info["mode"]
     modify_graph.add_edge_transport_time(current_place, next_place, transport_time, transport_mode)
-    return day_plan
+
+
+def next_place_transport_info(day_plan, next_place) -> (int, str):
+    transport_info = shortest_transportation(day_plan, next_place)
+    transport_time, transport_mode = transport_info["transport_time"], transport_info["mode"]
+    return transport_time, transport_mode
+
 
 def is_visited(place: Place):
     if place in visited_places or place in skipped_places:
