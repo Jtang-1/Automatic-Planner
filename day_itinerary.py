@@ -10,7 +10,7 @@ class DayItinerary:
         self.locations = []
         self.transport = []
         self.start_date_time = start_date_time
-        self.current_time = start_date_time
+        self.current_date_time = start_date_time
         self.end_date_time = end_date_time
         self.day_minutes = int((end_date_time - start_date_time).total_seconds()/60)
         if locations:
@@ -24,16 +24,20 @@ class DayItinerary:
 
     def add_minutes_spent(self, minutes):
         minutes_spent = datetime.timedelta(minutes = minutes)
-        self.current_time += minutes_spent
+        self.current_date_time += minutes_spent
 
     @property
     def minutes_spent(self):
-        return (self.current_time - self.start_date_time).total_seconds() / 60
+        return (self.current_date_time - self.start_date_time).total_seconds() / 60
 
     @property
     def date(self):
-        return self.current_time.date()
+        return self.current_date_time.date()
 
+    #0 is Sunday per Google Place API
+    @property
+    def day_of_week(self):
+        return (self.current_date_time.weekday()+1) % 7
     def is_empty(self):
         if len(self.locations):
             return False
@@ -54,10 +58,7 @@ class DayItinerary:
                 return None, None
         for transport in self.transport:
             if transport.is_edge_for(origin, destination):
-                print("in transport TRUE")
                 origin_to_destination_transport = transport
-        print("origin is", origin.name)
-        print("destination is", destination.name)
         time = origin_to_destination_transport.get_time_transport_to(destination)
         mode = origin_to_destination_transport.get_mode_transport_to(destination)
         return time, mode

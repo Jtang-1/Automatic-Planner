@@ -34,7 +34,7 @@ def find_travel_time(origin: Place, destination: Place, mode="driving", departur
     if isinstance(departure_time, datetime.datetime):
         departure_time = int((departure_time - reference_time).total_seconds())
     json_distance_matrix = _raw_distance_matrix(origin, destination, mode=mode, departure_time=departure_time)
-    print("find travel time matrix is", json_distance_matrix)
+    #print("find travel time matrix is", json_distance_matrix)
     status = json_distance_matrix["rows"][0]["elements"][0]["status"]
     if status != "OK":
         return None
