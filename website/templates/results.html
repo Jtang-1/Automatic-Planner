@@ -34,8 +34,8 @@
     </ol>
     {% endfor %}
 
-    {% for location in itinerary.nonvisted_locations %}
     <header> Unvisted Place(s)</header>
+    {% for location in itinerary.nonvisted_locations %}
     <ul>
         <li> {{location.name}} {{location.visit_minutes/60}} </li>
     </ul>

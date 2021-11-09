@@ -8,7 +8,14 @@ def create_open_close_times(opening_hours, state: str = "open") -> {int, datetim
             return dict.fromkeys([0, 1, 2, 3, 4, 5, 6], datetime.time(0, 0))
         if state == "close":
             return dict.fromkeys([0, 1, 2, 3, 4, 5, 6], datetime.time(23, 59, 59))
-    for period in opening_hours["periods"]:
+    for day_of_week_count, period in enumerate(opening_hours["periods"]):
+        while day_of_week_count != period[state]["day"]:
+            # None signifies closed for day
+            print("day of week count is", day_of_week_count)
+            print("period day is", period[state]["day"])
+            state_time = None
+            state_times[day_of_week_count] = state_time
+            day_of_week_count += 1
         day = period[state]["day"]
         state_time_hour = period[state]["hours"]
         state_time_minute = period[state]["minutes"]
@@ -41,4 +48,8 @@ class Place:
         self.open_times = create_open_times(opening_hours)
         self.close_times = create_close_times(opening_hours)
 
+    def is_closed_on(self, weekday: int):
+        if self.open_times[weekday] is None:
+            return True
+        return False
 
