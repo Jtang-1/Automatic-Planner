@@ -29,10 +29,9 @@ def home():
         session["place_id"] = []
     if "place_visiting_lat_lng" not in session:
         session["place_visiting_lat_lng"] = {"lat": None, "lng": None}
-    return render_template("home.html", location_names=session["location_name"],
+    return render_template("home.html", locations=zip(session["location_name"], session["place_id"]),
                            visit_place_lat=session["place_visiting_lat_lng"]["lat"],
                            visit_place_lng=session["place_visiting_lat_lng"]["lng"])
-
 
 @app.route("/receiveDestination", methods=["POST"])
 def receiveDestination():
@@ -47,17 +46,14 @@ def receiveDestination():
 @app.route("/receiveVisitHours", methods=["POST"])
 def receiveVisitHours():
     if request.method == "POST":
-        print("in receive Visit Hours")
         visit_hours = request.get_json(force=True)
         session["visit_hours"] = visit_hours
-        print("this is the visiting hour", visit_hours)
     return redirect(url_for("home"))
 
 
 @app.route("/receiveHome", methods=["POST"])
 def receiveHome():
     if request.method == "POST":
-        print("in receive Home")
         place_details = request.get_json(force=True)
         process_place(modify_graph.create_home(place_details))
     return redirect(url_for("home"))
@@ -83,7 +79,6 @@ def receiveEndDate():
         month = int(end_date.split("-")[1])
         day = int(end_date.split("-")[2])
         end_date = datetime.datetime(year, month, day)
-        print("end date is", end_date)
         session["end_date"] = jsonpickle.encode(end_date)
     return redirect(url_for("home"))
 
@@ -95,7 +90,6 @@ def receiveDayStartTime():
         hour = int(start_time.split(":")[0])
         minute = int(start_time.split(":")[1])
         start_time = datetime.time(hour, minute)
-        print('start time is', start_time)
         session["start_time"] = jsonpickle.encode(start_time)
     return redirect(url_for("home"))
 
@@ -107,7 +101,6 @@ def receiveDayEndTime():
         hour = int(end_time.split(":")[0])
         minute = int(end_time.split(":")[1])
         end_time = datetime.time(hour, minute)
-        print('end time is', end_time)
         session["end_time"] = jsonpickle.encode(end_time)
     return redirect(url_for("home"))
 
@@ -115,12 +108,10 @@ def receiveDayEndTime():
 @app.route("/receiveVisitingArea", methods=["POST"])
 def receiveVisitingArea():
     if request.method == "POST":
-        print("in receive visit area")
         place_details = request.get_json(force=True)
         place_lat_lng = place_details["geometry"]["location"]
         session["place_visiting_lat_lng"] = place_lat_lng
-        print("visiting area is", place_details)
-        print("visting area lat,lng: ", place_lat_lng["lat"], ",", place_lat_lng["lng"])
+
     return redirect(url_for("home"))
 
 
@@ -129,6 +120,21 @@ def results():
     itinerary = create_trip_itinerary()
     itinerary = shortest_path.create_itinerary(itinerary)
     return render_template("results.html", itinerary=itinerary)
+
+
+@app.route("/removeLocation", methods=["POST"])
+def removeLocation():
+    if request.method == "POST":
+        place_id = request.get_json(force=True)["place_ID"]
+        print("location place_id is", place_id)
+        place_id_index = session["place_id"].index(place_id)
+        print("place id index is", place_id_index)
+        print("location  name is", session["location_name"][place_id_index])
+        del session["location_name"][place_id_index]
+        del session["place_id"][place_id_index]
+        for place in session["location_name"]:
+            print("in removeLocation, places left is", place)
+    return redirect(url_for("home"))
 
 
 def process_place(new_place: Place):

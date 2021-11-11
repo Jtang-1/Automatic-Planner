@@ -19,7 +19,6 @@ def get_place_id(address: str) -> str:
 #returns api json response as dict
 def place_details(address: str) -> dict:
     place_id = get_place_id(address)
-    print(place_id)
     place_details_endpoint = f'https://maps.googleapis.com/maps/api/place/details/{data_type}'
     parameters = {"place_id": place_id, "fields": fields,
                   "language": language, "key": api_key}

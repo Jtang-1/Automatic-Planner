@@ -118,7 +118,7 @@
         }
 
         function sendPlaceInfo(place,url){
-            document.getElementById("details").innerHTML = place.name;
+<!--            document.getElementById("details").innerHTML = place.name;-->
                 let location = JSON.stringify({
                     "name":place.name,
                     "place_id":place.place_id,
@@ -140,8 +140,6 @@
         function sendInfo(info, url){
             const request = new XMLHttpRequest();
             request.open("POST", url, true);
-            console.log("time in sendInfo is", info)
-            console.log("type in send info is", typeof info)
             request.send(info);
         }
 
@@ -241,7 +239,9 @@
     </form>
 
         <form id="home_time_form" action="/" method="POST">
+            <label>Time to start your day:</label>
             <input type="time" id="leave_time" style="width:100px" onchange="onLeaveTimeChanged()">
+            <label>Time to end your day:</label>
             <input type="time" id="return_time" style="width:100px" onchange="onReturnTimeChanged()">
 
         </form>
@@ -257,17 +257,21 @@
     </form>
 
     <form action ="/results" method = "get">
-        <input type="submit" value = "Submit">
+        <input type="submit" value = "Show Schedule">
     </form>
 </head>
 <body>
     <div id="test">
-    <ol type="1">
+    <ol type="1" id="locations">
         <option id="details"></option>
-        {% for location in location_names %}
-            <option>{{location}}</option>
+        {% for location,place_id in locations %}
+            <li class="location" id="{{loop.index0}}">
+                <option class="locationName" id="{{place_id}}">{{location}}</option>
+                <button>remove</button>
+            </li>
         {% endfor %}
     </ol>
     </div>
 </body>
+<script src="{{url_for('static', filename='main.js')}}"> defer></script>
 </html>
