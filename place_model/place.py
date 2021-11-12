@@ -12,8 +12,6 @@ def create_open_close_times(opening_hours, state: str = "open") -> {int, datetim
     for period in opening_hours["periods"]:
         while day_of_week_count < period[state]["day"]:
             # None signifies closed for day
-            print("day of week count is", day_of_week_count)
-            print("period day is", period[state]["day"])
             state_time = None
             state_times[day_of_week_count] = state_time
             day_of_week_count += 1

@@ -217,13 +217,13 @@
 
     <form id="visiting_area_form"action="/" method="POST">
         <div><label for="visiting_area">Where are you visiting?</label>
-        <input type="text" id="visiting_area" style="width:300px">
+        <input type="text" id="visiting_area" style="width:300px" placeholder="e.g. New York, San Francisco, Tokyo">
             <button> Submit </button>
         </div>
     </form>
 
     <form action="/" method="POST">
-        <div> </div><label>When are you visiting?</label>
+        <div> </div><label>Dates</label>
         <input type="date" id="start_date"  style="width:150px" onchange="onStartDateChanged()">
             through
         <input type="date" id="end_date"  style="width:150px" onchange="onEndDateChanged()">

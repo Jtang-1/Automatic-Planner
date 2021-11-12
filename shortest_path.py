@@ -22,7 +22,10 @@ def create_itinerary(itinerary: TripItinerary) -> TripItinerary:
     visited_places = {graph.home}
     for day_plan in itinerary.days_itinerary.values():
         # print("day_plan day length is", day_plan.day_minutes / 60)
+        print("visited places b/f add_day_itinerary are", visited_places)
         itinerary.add_day_itinerary(create_day_itinerary(day_plan))
+        print("in create_itinerary")
+        print("visited places after add_day_itinerary is", visited_places)
         if is_all_visited():
             break
     itinerary.add_nonvisited_locations(graph.vertices ^ visited_places)
@@ -30,9 +33,13 @@ def create_itinerary(itinerary: TripItinerary) -> TripItinerary:
 
 
 def create_day_itinerary(day_plan: DayItinerary) -> DayItinerary:  # will need to pass in day of the week
+    print("in create_day_itinerary")
     add_first_destination(day_plan)
+    print("after create day itinerary create_day_itinerary")
     day_shortest_route(day_plan)
+    print("after day shortest route, create_day_itineary")
     back_home(day_plan)
+    print("after back home, create_day_itinerary")
 
     # print("day itinerary is", [(count, place.name) for count, place in enumerate(day_plan.locations)])
     return day_plan
@@ -43,7 +50,8 @@ def day_shortest_route(day_plan: DayItinerary):
     total_path_connections = graph.num_vertices - len(visited_places)
     prev_place = day_plan.locations[-1]
     for _ in range(total_path_connections):
-        if is_all_visited():
+        if is_all_checked():
+            skipped_places = set()
             return
         current_place = day_plan.locations[-1]
         next_place = closest_unvisited_not_home_neighbor(prev_place)
@@ -52,11 +60,10 @@ def day_shortest_route(day_plan: DayItinerary):
             continue
         add_location_to_day_itinerary(day_plan, current_place, next_place)
         prev_place = next_place
-
-
+    skipped_places = set()
     # for count, place in enumerate(visit_order):
     #     print(count, place.name)
-    skipped_places = set()
+
 
 
 def closest_unvisited_not_home_neighbor(node: Place) -> Union[Place, Attraction]:
@@ -84,11 +91,15 @@ def closest_unvisited_not_home_neighbor(node: Place) -> Union[Place, Attraction]
 
 def farthest_not_home_neighbor(node: Place) -> Union[Place, Attraction]:
     neighbors_edges = graph.neighbors_edges(node)
+    print("in farthest_not_home_neighbor")
     farthest_neighbor_dist = 0
     farthest_neighbor = None
     for edge in neighbors_edges:
         node1 = edge.place1
         node2 = edge.place2
+        print("node1 is", node1.name)
+        print("node2 is",node2.name)
+        print("edge distnace is", edge.distance)
         if edge.distance < farthest_neighbor_dist:
             continue
         if node1 != node and not isinstance(node1, Home) and not is_visited(node1):
@@ -104,14 +115,20 @@ def farthest_not_home_neighbor(node: Place) -> Union[Place, Attraction]:
 
 
 def add_first_destination(day_plan: DayItinerary):
+    global skipped_places
     home = graph.home
     day_plan.add_place(home)
     farthest_neighbor = farthest_not_home_neighbor(home)
+    print("in add_first_desintation, skipped places are", skipped_places)
+    print("in add_first_desitaiton, visited places are", visited_places)
     while not should_visit(day_plan, home, farthest_neighbor):
         farthest_neighbor = farthest_not_home_neighbor(home)
-        if is_all_visited():
+        if is_all_checked():
+            skipped_places = set()
             return
     add_location_to_day_itinerary(day_plan, home, farthest_neighbor)
+    skipped_places = set()
+
 
 
 def back_home(day_plan: DayItinerary):
@@ -128,6 +145,7 @@ def should_visit(day_plan: DayItinerary, current_place: Place, next_place: Place
     global skipped_places
     day_minutes = day_plan.day_minutes
     current_day_of_week = day_plan.day_of_week
+    print("next place is", next_place.name)
     if next_place.is_closed_on(current_day_of_week):
         skipped_places.add(next_place)
         return False
@@ -223,6 +241,16 @@ def is_visited(place: Place) -> bool:
 
 
 def is_all_visited() -> bool:
-    if graph.num_vertices - 1 == len(skipped_places):
+    print("in is all visited, graph.num_vertices is", graph.num_vertices)
+    print("len of visited places is", len(visited_places))
+    print("visited places are", visited_places)
+    print("graph veritcies are", graph.vertices)
+    if graph.num_vertices == len(visited_places):
+        return True
+    return False
+
+def is_all_checked() -> bool:
+    num_places_left = graph.num_vertices - len(visited_places)
+    if num_places_left == len(skipped_places):
         return True
     return False

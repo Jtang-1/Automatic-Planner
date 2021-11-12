@@ -192,7 +192,7 @@ if __name__ == "__main__":
         start_date_test = datetime.datetime(2021, 11, 24)
         end_date_test = datetime.datetime(2021, 11, 26)
         start_time_test = datetime.time(8)
-        end_time_test = datetime.time(23)
+        end_time_test = datetime.time(14)
 
         UCI_details = {'name': 'University of California Irvine', 'place_id': 'ChIJkb-SJQ7e3IAR7LfattDF-3k', 'formatted_address': 'Irvine, CA 92697, USA', 'type': ['university', 'point_of_interest', 'establishment'], 'business_status': 'OPERATIONAL'}
         Great_Park_details = {'name': 'Great Park Ice & Fivepoint Arena', 'place_id': 'ChIJgbGAbmLD3IARw5nd_Msw7RM', 'formatted_address': '888 Ridge Valley, Irvine, CA 92618, USA', 'type': ['point_of_interest', 'establishment'], 'opening_hours': {'open_now': True, 'periods': [{'close': {'day': 0, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 0, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 1, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 1, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 2, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 2, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 3, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 3, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 4, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 4, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 5, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 5, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 6, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 6, 'time': '0600', 'hours': 6, 'minutes': 0}}], 'weekday_text': ['Monday: 6:00 AM – 11:00 PM', 'Tuesday: 6:00 AM – 11:00 PM', 'Wednesday: 6:00 AM – 11:00 PM', 'Thursday: 6:00 AM – 11:00 PM', 'Friday: 6:00 AM – 11:00 PM', 'Saturday: 6:00 AM – 11:00 PM', 'Sunday: 6:00 AM – 11:00 PM']}, 'business_status': 'OPERATIONAL'}
@@ -207,7 +207,7 @@ if __name__ == "__main__":
         # Great_Park = modify_graph.create_attraction(Great_Park_details, 1)
         Spectrum = modify_graph.create_home(Spectrum_details)
         # Disneyland = modify_graph.create_attraction(Disneyland_details, 7)
-        # Southcoast = modify_graph.create_attraction(Southcoast_details, 12)
+        Southcoast = modify_graph.create_attraction(Southcoast_details, 4)
         # Costco = modify_graph.create_attraction(Costco_details, 1)
         # Mcdonald = modify_graph.create_attraction(Mcdonald_details, 3)
         MET = modify_graph.create_attraction(MET_details, 1)
@@ -216,7 +216,7 @@ if __name__ == "__main__":
         # process_place_test(Great_Park)
         process_place_test(Spectrum)
         #process_place_test(Disneyland)
-        # process_place_test(Southcoast)
+        process_place_test(Southcoast)
         #process_place_test(Costco)
         #process_place_test(Mcdonald)
         process_place_test(MET)
