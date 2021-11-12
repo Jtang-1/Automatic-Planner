@@ -63,8 +63,8 @@ def neighboring_distances(place: Place) -> dict[Place, dict[Place, int]]:
         return distance_dict
 
 
-def remove_place(place_details):
-    pass
+def remove_place(place_to_remove: Place):
+    graph.remove_vertex(place_to_remove)
 
 
 def remove_edge(place: Place):

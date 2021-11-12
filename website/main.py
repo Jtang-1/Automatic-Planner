@@ -130,6 +130,7 @@ def removeLocation():
         place_id_index = session["place_id"].index(place_id)
         print("place id index is", place_id_index)
         print("location  name is", session["location_name"][place_id_index])
+        remove_place(session["place_id"][place_id_index])
         del session["location_name"][place_id_index]
         del session["place_id"][place_id_index]
         for place in session["location_name"]:
@@ -143,6 +144,19 @@ def process_place(new_place: Place):
         modify_graph.add_edges(new_place)
         session["place_id"].append(new_place.place_id)
         session["location_name"].append(new_place.name)
+
+
+def remove_place(place_id: str):
+    graph = modify_graph.get_graph()
+    for place in graph.vertices:
+        print("place is", place.name)
+        if place.place_id == place_id:
+            place_to_remove = place
+            print("place to remove is", place_to_remove.name)
+            break
+    graph.remove_vertex(place)
+    for place in graph.vertices:
+        print("remaining places are", place.name)
 
 
 def create_trip_itinerary() -> TripItinerary:
@@ -221,11 +235,13 @@ if __name__ == "__main__":
         #process_place_test(Mcdonald)
         process_place_test(MET)
 
-        trip_itinerary_test = create_trip_itinerary_test(start_date_test, end_date_test, start_time_test, end_time_test)
-        trip_itinerary_test = shortest_path.create_itinerary(trip_itinerary_test)
-        #print("trip days is", trip_itinerary_test.trip_days)
-        print("days_itinerary in Trip_itinerary", trip_itinerary_test.days_itinerary)
-        for day_itinerary in trip_itinerary_test.days_itinerary.values():
-            current_day_of_week = day_itinerary.day_of_week
-            print("current_day_of_week is", current_day_of_week)
-            print(list([count, location.name, location.visit_minutes, day_itinerary.current_date_time.time(), location.open_times, location.close_times] for count, location in enumerate(day_itinerary.locations)))
+        # trip_itinerary_test = create_trip_itinerary_test(start_date_test, end_date_test, start_time_test, end_time_test)
+        # trip_itinerary_test = shortest_path.create_itinerary(trip_itinerary_test)
+        # #print("trip days is", trip_itinerary_test.trip_days)
+        # print("days_itinerary in Trip_itinerary", trip_itinerary_test.days_itinerary)
+        # for day_itinerary in trip_itinerary_test.days_itinerary.values():
+        #     current_day_of_week = day_itinerary.day_of_week
+        #     print("current_day_of_week is", current_day_of_week)
+        #     print(list([count, location.name, location.visit_minutes, day_itinerary.current_date_time.time(), location.open_times, location.close_times] for count, location in enumerate(day_itinerary.locations)))
+
+        remove_place(Southcoast_details["place_id"])
