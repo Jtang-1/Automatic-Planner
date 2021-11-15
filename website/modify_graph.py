@@ -42,9 +42,9 @@ def add_edges(new_place: Place):
         if place != new_place:
             # print("new_place is", new_place)
             # print("place in add_edges is", place)
-            dist_to_neighbor = distance_dict[new_place][place]
+            dist_to_neighbor = distance_dict[place]
             graph.add_edge(Edge(place, new_place, dist_to_neighbor))
-    #print(graph.num_edge)
+    # print(graph.num_edge)
 
 
 def add_edge_transport_time(origin: Place, destination: Place, transport_time: int, transport_mode: str):
@@ -52,15 +52,21 @@ def add_edge_transport_time(origin: Place, destination: Place, transport_time: i
     interested_edge.set_info_transport_to(destination, transport_time, transport_mode)
 
 
-def neighboring_distances(place: Place) -> dict[Place, dict[Place, int]]:
+def neighboring_distances(place: Place) -> dict[Place, int]:
     existing_places = set(graph.vertices)
     # print("Existing_places are", existing_places)
     # print("passed in place is", place)
     existing_places.remove(place)
-    if len(existing_places) != 0:
-        distance_dict = dist_api.distance_dict(place, list(existing_places))
+    existing_places = list(existing_places)
+    # Google Distance Matrix API Max 25 origins or 25 destinations per request
+    existing_places_chunks = list(chunks(existing_places, 24))
+    final_distance_dict = {}
+    for existing_places_chunk in existing_places_chunks:
+        if len(existing_places_chunk) != 0:
+            distance_dict = dist_api.distance_dict(place, existing_places_chunk)
+            final_distance_dict = final_distance_dict | distance_dict[place]
         # print("this is distance_dict", distance_dict)
-        return distance_dict
+    return final_distance_dict
 
 
 def remove_place(place_to_remove: Place):

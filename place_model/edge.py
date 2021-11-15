@@ -3,20 +3,26 @@ class Edge:
         self.place1 = place1
         self.place2 = place2
         self.distance = distance
-        self.transport_time_to = {place1: None, place2: None}
-        self.transport_mode_to = {place1: None, place2: None}
+        self.transport_time_to = {place1.place_id: None, place2.place_id: None}
+        self.transport_mode_to = {place1.place_id: None, place2.place_id: None}
 
     def set_time_transport_to(self, destination, transport_time: int):
-        self.transport_time_to[destination] = transport_time
+        self.transport_time_to[destination.place_id] = transport_time
 
     def get_time_transport_to(self, destination):
-        return self.transport_time_to[destination]
+        print("place1 is", self.place1)
+        print("place 2 is", self.place2)
+        print("place1 place id is", self.place1.place_id)
+        print("desination type is", type(destination))
+
+        print("transport time keys are", self.transport_time_to.keys())
+        return self.transport_time_to[destination.place_id]
 
     def set_mode_transport_to(self, destination, transport_mode: str):
-        self.transport_mode_to[destination] = transport_mode
+        self.transport_mode_to[destination.place_id] = transport_mode
 
     def get_mode_transport_to(self, destination):
-        return self.transport_mode_to[destination]
+        return self.transport_mode_to[destination.place_id]
 
     def set_info_transport_to(self, destination, transport_time: int, transport_mode: str):
         self.set_time_transport_to(destination, transport_time)

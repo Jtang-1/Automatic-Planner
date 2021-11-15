@@ -33,12 +33,13 @@ def home():
                            visit_place_lat=session["place_visiting_lat_lng"]["lat"],
                            visit_place_lng=session["place_visiting_lat_lng"]["lng"])
 
+
 @app.route("/receiveDestination", methods=["POST"])
 def receiveDestination():
     if request.method == "POST":
         print("in receive destination")
         place_details = request.get_json(force=True)
-        print("place_details is",place_details)
+        print("place_details is", place_details)
         process_place(modify_graph.create_attraction(place_details, session["visit_hours"]))
     return redirect(url_for("home"))
 
@@ -115,11 +116,22 @@ def receiveVisitingArea():
     return redirect(url_for("home"))
 
 
-@app.route("/results", methods=["GET"])
+@app.route("/results", methods=["GET", "POST"])
 def results():
-    itinerary = create_trip_itinerary()
-    itinerary = shortest_path.create_itinerary(itinerary)
-    return render_template("results.html", itinerary=itinerary)
+    if request.method == "POST":
+        print("checkbox value is", request.form.get("drivingAllowance"))
+        if request.form.get("drivingAllowance") == "avoidDriving":
+            session["driving_allowance"] = False
+        else:
+            session["driving_allowance"] = True
+        itinerary = create_trip_itinerary()
+        itinerary = shortest_path.create_itinerary(itinerary)
+        session["itinerary"] = jsonpickle.encode(itinerary)
+        return redirect(url_for("results"))
+    # fix so saved itinerary is just the needed info, without the objects since objects can't be converted correctly to JSON
+    if request.method == "GET":
+        pass
+    return render_template("results.html", itinerary=jsonpickle.decode(session["itinerary"]))
 
 
 @app.route("/removeLocation", methods=["POST"])
@@ -163,6 +175,7 @@ def create_trip_itinerary() -> TripItinerary:
     start_date = jsonpickle.decode(session["start_date"])
     end_date = jsonpickle.decode(session["end_date"])
     trip_itinerary = TripItinerary(start_date=start_date, end_date=end_date)
+    trip_itinerary.set_is_driving_allowed(session["driving_allowance"])
 
     start_time_delta = website_helpers.time_to_minutesdelta(jsonpickle.decode(session["start_time"]))
     end_time_delta = website_helpers.time_to_minutesdelta(jsonpickle.decode(session["end_time"]))
@@ -170,7 +183,7 @@ def create_trip_itinerary() -> TripItinerary:
     for _ in range(trip_itinerary.trip_days):
         start_date_time = trip_itinerary.current_date + start_time_delta
         end_date_time = trip_itinerary.current_date + end_time_delta
-        trip_itinerary.add_day_itinerary(DayItinerary(start_date_time, end_date_time))
+        trip_itinerary.add_day_itinerary(DayItinerary(start_date_time, end_date_time, trip_itinerary.is_driving_allowed))
         trip_itinerary.next_day()
 
     return trip_itinerary
@@ -178,6 +191,7 @@ def create_trip_itinerary() -> TripItinerary:
 
 def create_trip_itinerary_test(start_date, end_date, start_time, end_time) -> TripItinerary:
     trip_itinerary = TripItinerary(start_date=start_date, end_date=end_date)
+    trip_itinerary.set_is_driving_allowed(False)
 
     start_time_delta = website_helpers.time_to_minutesdelta(start_time)
     end_time_delta = website_helpers.time_to_minutesdelta(end_time)
@@ -185,7 +199,7 @@ def create_trip_itinerary_test(start_date, end_date, start_time, end_time) -> Tr
     for _ in range(trip_itinerary.trip_days):
         start_date_time = trip_itinerary.current_date + start_time_delta
         end_date_time = trip_itinerary.current_date + end_time_delta
-        trip_itinerary.add_day_itinerary(DayItinerary(start_date_time, end_date_time))
+        trip_itinerary.add_day_itinerary(DayItinerary(start_date_time, end_date_time, trip_itinerary.is_driving_allowed))
         trip_itinerary.next_day()
 
     return trip_itinerary
@@ -206,7 +220,7 @@ if __name__ == "__main__":
         start_date_test = datetime.datetime(2021, 11, 24)
         end_date_test = datetime.datetime(2021, 11, 26)
         start_time_test = datetime.time(8)
-        end_time_test = datetime.time(14)
+        end_time_test = datetime.time(23)
 
         UCI_details = {'name': 'University of California Irvine', 'place_id': 'ChIJkb-SJQ7e3IAR7LfattDF-3k', 'formatted_address': 'Irvine, CA 92697, USA', 'type': ['university', 'point_of_interest', 'establishment'], 'business_status': 'OPERATIONAL'}
         Great_Park_details = {'name': 'Great Park Ice & Fivepoint Arena', 'place_id': 'ChIJgbGAbmLD3IARw5nd_Msw7RM', 'formatted_address': '888 Ridge Valley, Irvine, CA 92618, USA', 'type': ['point_of_interest', 'establishment'], 'opening_hours': {'open_now': True, 'periods': [{'close': {'day': 0, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 0, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 1, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 1, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 2, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 2, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 3, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 3, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 4, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 4, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 5, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 5, 'time': '0600', 'hours': 6, 'minutes': 0}}, {'close': {'day': 6, 'time': '2300', 'hours': 23, 'minutes': 0}, 'open': {'day': 6, 'time': '0600', 'hours': 6, 'minutes': 0}}], 'weekday_text': ['Monday: 6:00 AM – 11:00 PM', 'Tuesday: 6:00 AM – 11:00 PM', 'Wednesday: 6:00 AM – 11:00 PM', 'Thursday: 6:00 AM – 11:00 PM', 'Friday: 6:00 AM – 11:00 PM', 'Saturday: 6:00 AM – 11:00 PM', 'Sunday: 6:00 AM – 11:00 PM']}, 'business_status': 'OPERATIONAL'}
@@ -235,13 +249,13 @@ if __name__ == "__main__":
         #process_place_test(Mcdonald)
         process_place_test(MET)
 
-        # trip_itinerary_test = create_trip_itinerary_test(start_date_test, end_date_test, start_time_test, end_time_test)
-        # trip_itinerary_test = shortest_path.create_itinerary(trip_itinerary_test)
-        # #print("trip days is", trip_itinerary_test.trip_days)
-        # print("days_itinerary in Trip_itinerary", trip_itinerary_test.days_itinerary)
-        # for day_itinerary in trip_itinerary_test.days_itinerary.values():
-        #     current_day_of_week = day_itinerary.day_of_week
-        #     print("current_day_of_week is", current_day_of_week)
-        #     print(list([count, location.name, location.visit_minutes, day_itinerary.current_date_time.time(), location.open_times, location.close_times] for count, location in enumerate(day_itinerary.locations)))
+        trip_itinerary_test = create_trip_itinerary_test(start_date_test, end_date_test, start_time_test, end_time_test)
+        trip_itinerary_test = shortest_path.create_itinerary(trip_itinerary_test)
+        #print("trip days is", trip_itinerary_test.trip_days)
+        print("days_itinerary in Trip_itinerary", trip_itinerary_test.days_itinerary)
+        for day_itinerary in trip_itinerary_test.days_itinerary.values():
+            current_day_of_week = day_itinerary.day_of_week
+            print("current_day_of_week is", current_day_of_week)
+            print(list([count, location.name, location.visit_minutes, day_itinerary.current_date_time.time(), location.open_times, location.close_times] for count, location in enumerate(day_itinerary.locations)))
 
         remove_place(Southcoast_details["place_id"])

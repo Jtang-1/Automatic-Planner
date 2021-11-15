@@ -1,5 +1,7 @@
 const locations = document.querySelector("ol")
 
+
+//Remove Place
 addGlobalEventListener('click', "button", e => {
     const parent = e.target.parentNode
     console.log("parent id is", parent.id)
@@ -21,6 +23,7 @@ addGlobalEventListener('click', "button", e => {
         }
     }
 })
+
 
 function sendInfo(info, url){
     const request = new XMLHttpRequest()

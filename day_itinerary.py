@@ -6,7 +6,8 @@ import datetime
 
 class DayItinerary:
     def __init__(self, start_date_time: datetime.datetime, end_date_time: datetime.datetime,
-                 locations: [Place] = None):
+                 is_driving_allowed: bool = True, locations: [Place] = None):
+        self.is_driving_allowed = is_driving_allowed
         self.locations = []
         self.transport = []
         self.start_date_time = start_date_time

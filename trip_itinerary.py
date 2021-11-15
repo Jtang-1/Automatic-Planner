@@ -4,6 +4,7 @@ import datetime
 
 class TripItinerary:
     def __init__(self, start_date: datetime.datetime, end_date: datetime.datetime, days_itinerary: [DayItinerary] = None):
+        self.is_driving_allowed = True
         self.days_itinerary = {}
         self.start_date = start_date
         self.current_date = start_date
@@ -25,3 +26,6 @@ class TripItinerary:
 
     def add_nonvisited_locations(self, places: set):
         self.nonvisted_locations = places
+
+    def set_is_driving_allowed(self, is_driving_allowed: bool):
+        self.is_driving_allowed = is_driving_allowed

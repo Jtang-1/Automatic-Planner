@@ -33,13 +33,9 @@ def create_itinerary(itinerary: TripItinerary) -> TripItinerary:
 
 
 def create_day_itinerary(day_plan: DayItinerary) -> DayItinerary:  # will need to pass in day of the week
-    print("in create_day_itinerary")
     add_first_destination(day_plan)
-    print("after create day itinerary create_day_itinerary")
     day_shortest_route(day_plan)
-    print("after day shortest route, create_day_itineary")
     back_home(day_plan)
-    print("after back home, create_day_itinerary")
 
     # print("day itinerary is", [(count, place.name) for count, place in enumerate(day_plan.locations)])
     return day_plan
@@ -51,8 +47,7 @@ def day_shortest_route(day_plan: DayItinerary):
     prev_place = day_plan.locations[-1]
     for _ in range(total_path_connections):
         if is_all_checked():
-            skipped_places = set()
-            return
+            break
         current_place = day_plan.locations[-1]
         next_place = closest_unvisited_not_home_neighbor(prev_place)
         if not should_visit(day_plan, current_place, next_place):
@@ -97,9 +92,6 @@ def farthest_not_home_neighbor(node: Place) -> Union[Place, Attraction]:
     for edge in neighbors_edges:
         node1 = edge.place1
         node2 = edge.place2
-        print("node1 is", node1.name)
-        print("node2 is",node2.name)
-        print("edge distnace is", edge.distance)
         if edge.distance < farthest_neighbor_dist:
             continue
         if node1 != node and not isinstance(node1, Home) and not is_visited(node1):
@@ -119,16 +111,15 @@ def add_first_destination(day_plan: DayItinerary):
     home = graph.home
     day_plan.add_place(home)
     farthest_neighbor = farthest_not_home_neighbor(home)
-    print("in add_first_desintation, skipped places are", skipped_places)
-    print("in add_first_desitaiton, visited places are", visited_places)
-    while not should_visit(day_plan, home, farthest_neighbor):
+    total_path_connections = graph.num_vertices - len(visited_places)
+    for _ in range(total_path_connections):
+        if should_visit(day_plan, home, farthest_neighbor):
+            add_location_to_day_itinerary(day_plan, home, farthest_neighbor)
+            break
+        elif is_all_checked():
+            break
         farthest_neighbor = farthest_not_home_neighbor(home)
-        if is_all_checked():
-            skipped_places = set()
-            return
-    add_location_to_day_itinerary(day_plan, home, farthest_neighbor)
     skipped_places = set()
-
 
 
 def back_home(day_plan: DayItinerary):
@@ -170,9 +161,6 @@ def is_open_during_visit(day_plan: DayItinerary, next_place: Place) -> bool:
     visit_time_delta = datetime.timedelta(minutes=next_place.visit_minutes)
     time_after_visit = (day_plan.current_date_time + visit_time_delta).time()
     current_day_of_week = day_plan.day_of_week
-    print("in check if open current day of week is", current_day_of_week)
-    print("in check if open", next_place.name, "open times are", next_place.open_times)
-    print("in check if open", next_place.name, "close times are", next_place.close_times)
     next_place_open_time = next_place.open_times[current_day_of_week]
     next_place_close_time = next_place.close_times[current_day_of_week]
     if next_place_open_time < time_after_visit < next_place_close_time:
@@ -188,7 +176,7 @@ def is_open_after_transport_during_visit(day_plan: DayItinerary, next_place: Pla
     next_place_open_time = next_place.open_times[current_day_of_week]
     next_place_close_time = next_place.close_times[current_day_of_week]
     # print("in open during visit", next_place.name, "close time is", next_place_close_time,"current time is", day_plan.current_date_time.time(), "time after transport and visit is", time_after_transport_and_visit)
-    if next_place_open_time< time_after_transport_and_visit < next_place_close_time:
+    if next_place_open_time < time_after_transport_and_visit < next_place_close_time:
         return True
     return False
 
@@ -212,7 +200,11 @@ def add_transport_to_day_itinerary(day_plan: DayItinerary, current_place: Place,
 
 
 def get_shortest_transportation(day_plan: DayItinerary, next_place: Place) -> {int, str}:
-    modes = {"driving", "walking", "transit"}
+    if day_plan.is_driving_allowed:
+        modes = {"driving", "walking", "transit"}
+    else:
+        modes = {"walking", "transit"}
+    print("allowed modes are", modes)
     departure_time = day_plan.current_date_time
     current_place = day_plan.locations[-1]
     if isinstance(next_place, Home):
@@ -223,6 +215,8 @@ def get_shortest_transportation(day_plan: DayItinerary, next_place: Place) -> {i
         if new_transport_time is not None and new_transport_time < transport_time:
             transport_time = new_transport_time
             fastest_mode = mode
+    print("transport time is", transport_time)
+    print("transport mode is", fastest_mode)
     return {"transport_time": math.ceil(transport_time / 60), "mode": fastest_mode}
 
 
