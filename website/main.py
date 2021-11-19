@@ -191,7 +191,7 @@ def create_trip_itinerary() -> TripItinerary:
 
 def create_trip_itinerary_test(start_date, end_date, start_time, end_time) -> TripItinerary:
     trip_itinerary = TripItinerary(start_date=start_date, end_date=end_date)
-    trip_itinerary.set_is_driving_allowed(False)
+    trip_itinerary.set_is_driving_allowed(True)
 
     start_time_delta = website_helpers.time_to_minutesdelta(start_time)
     end_time_delta = website_helpers.time_to_minutesdelta(end_time)
@@ -211,7 +211,7 @@ def process_place_test(new_place: Place):
 
 
 if __name__ == "__main__":
-    test = False
+    test = True
 
     if not test:
         app.run(debug=True)
@@ -219,7 +219,7 @@ if __name__ == "__main__":
     if test:
         start_date_test = datetime.datetime(2021, 11, 24)
         end_date_test = datetime.datetime(2021, 11, 26)
-        start_time_test = datetime.time(8)
+        start_time_test = datetime.time(4)
         end_time_test = datetime.time(23)
 
         UCI_details = {'name': 'University of California Irvine', 'place_id': 'ChIJkb-SJQ7e3IAR7LfattDF-3k', 'formatted_address': 'Irvine, CA 92697, USA', 'type': ['university', 'point_of_interest', 'establishment'], 'business_status': 'OPERATIONAL'}
@@ -231,22 +231,22 @@ if __name__ == "__main__":
         Mcdonald_details ={'name': "McDonald's", 'place_id': 'ChIJHZJ7UqHd3IARXzrKFEIBFyk', 'formatted_address': '5445 Alton Pkwy, Irvine, CA 92614, USA', 'type': ['cafe', 'restaurant', 'food', 'point_of_interest', 'store', 'establishment'], 'opening_hours': {'open_now': True, 'periods': [{'open': {'day': 0, 'time': '0000', 'hours': 0, 'minutes': 0}}], 'weekday_text': ['Monday: Open 24 hours', 'Tuesday: Open 24 hours', 'Wednesday: Open 24 hours', 'Thursday: Open 24 hours', 'Friday: Open 24 hours', 'Saturday: Open 24 hours', 'Sunday: Open 24 hours']}, 'business_status': 'OPERATIONAL'}
         MET_details = {'name': 'The Metropolitan Museum of Art', 'place_id': 'ChIJb8Jg9pZYwokR-qHGtvSkLzs', 'formatted_address': '1000 5th Ave, New York, NY 10028, USA', 'type': ['art_gallery', 'tourist_attraction', 'museum', 'point_of_interest', 'establishment'], 'opening_hours': {'open_now': False, 'periods': [{'close': {'day': 0, 'time': '1700', 'hours': 17, 'minutes': 0}, 'open': {'day': 0, 'time': '1000', 'hours': 10, 'minutes': 0}}, {'close': {'day': 1, 'time': '1700', 'hours': 17, 'minutes': 0}, 'open': {'day': 1, 'time': '1000', 'hours': 10, 'minutes': 0}}, {'close': {'day': 2, 'time': '1700', 'hours': 17, 'minutes': 0}, 'open': {'day': 2, 'time': '1000', 'hours': 10, 'minutes': 0}}, {'close': {'day': 4, 'time': '1700', 'hours': 17, 'minutes': 0}, 'open': {'day': 4, 'time': '1000', 'hours': 10, 'minutes': 0}}, {'close': {'day': 5, 'time': '2100', 'hours': 21, 'minutes': 0}, 'open': {'day': 5, 'time': '1000', 'hours': 10, 'minutes': 0}}, {'close': {'day': 6, 'time': '2100', 'hours': 21, 'minutes': 0}, 'open': {'day': 6, 'time': '1000', 'hours': 10, 'minutes': 0}}], 'weekday_text': ['Monday: 10:00 AM – 5:00 PM', 'Tuesday: 10:00 AM – 5:00 PM', 'Wednesday: Closed', 'Thursday: 10:00 AM – 5:00 PM', 'Friday: 10:00 AM – 9:00 PM', 'Saturday: 10:00 AM – 9:00 PM', 'Sunday: 10:00 AM – 5:00 PM']}, 'business_status': 'OPERATIONAL'}
 
-        #UCI = modify_graph.create_attraction(UCI_details, 1)
-        # Great_Park = modify_graph.create_attraction(Great_Park_details, 1)
+        UCI = modify_graph.create_attraction(UCI_details, 1)
+        Great_Park = modify_graph.create_attraction(Great_Park_details, 1)
         Spectrum = modify_graph.create_home(Spectrum_details)
-        # Disneyland = modify_graph.create_attraction(Disneyland_details, 7)
+        Disneyland = modify_graph.create_attraction(Disneyland_details, 7)
         Southcoast = modify_graph.create_attraction(Southcoast_details, 4)
-        # Costco = modify_graph.create_attraction(Costco_details, 1)
-        # Mcdonald = modify_graph.create_attraction(Mcdonald_details, 3)
+        Costco = modify_graph.create_attraction(Costco_details, 1)
+        Mcdonald = modify_graph.create_attraction(Mcdonald_details, 3)
         MET = modify_graph.create_attraction(MET_details, 1)
 
-        #process_place_test(UCI)
-        # process_place_test(Great_Park)
+        process_place_test(UCI)
+        process_place_test(Great_Park)
         process_place_test(Spectrum)
-        #process_place_test(Disneyland)
+        process_place_test(Disneyland)
         process_place_test(Southcoast)
-        #process_place_test(Costco)
-        #process_place_test(Mcdonald)
+        process_place_test(Costco)
+        process_place_test(Mcdonald)
         process_place_test(MET)
 
         trip_itinerary_test = create_trip_itinerary_test(start_date_test, end_date_test, start_time_test, end_time_test)

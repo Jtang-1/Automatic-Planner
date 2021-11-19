@@ -2,6 +2,7 @@ import requests
 import time
 import urllib.error
 from urllib.parse import urlencode
+import datetime
 
 
 def create_encoded_url(parameters: dict, endpoint: str) -> str:
@@ -29,3 +30,8 @@ def get_url_response(url: str) -> dict:
         print("Waiting", current_delay, "seconds before retrying")
         time.sleep(current_delay)
         current_delay *= 2
+
+
+def time_to_minutes(time: datetime.time) -> int:
+    minute = time.hour * 60 + time.minute + time.second / 60
+    return int(minute)

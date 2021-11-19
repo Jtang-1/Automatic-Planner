@@ -35,6 +35,10 @@ class DayItinerary:
     def date(self):
         return self.current_date_time.date()
 
+    @property
+    def current_time(self):
+        return self.current_date_time.time()
+
     # 0 is Sunday per Google Place API
     @property
     def day_of_week(self):

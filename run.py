@@ -77,7 +77,7 @@ def run():
 
     time = datetime.datetime(2021,10,18,8,2)
     time2 = datetime.datetime(2021,10,18,8,2)
-    if isinstance(time,datetime.datetime):
+    if isinstance(time,datetime):
         print("this is true")
     print(type(time), "type of time")
     encoded_time = jsonpickle.encode(time)

@@ -10,12 +10,6 @@ class Edge:
         self.transport_time_to[destination.place_id] = transport_time
 
     def get_time_transport_to(self, destination):
-        print("place1 is", self.place1)
-        print("place 2 is", self.place2)
-        print("place1 place id is", self.place1.place_id)
-        print("desination type is", type(destination))
-
-        print("transport time keys are", self.transport_time_to.keys())
         return self.transport_time_to[destination.place_id]
 
     def set_mode_transport_to(self, destination, transport_mode: str):

@@ -5,7 +5,6 @@ from place_model.attraction import Attraction
 import place_model.google_map_distance_matrix as dist_api
 from place_model.place_graph import PlaceGraph
 from website.website_helpers import *
-import copy
 
 graph = PlaceGraph()
 
