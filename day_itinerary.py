@@ -16,6 +16,8 @@ class DayItinerary:
         self.day_minutes = int((end_date_time - start_date_time).total_seconds() / 60)
         if locations:
             self.locations = locations
+        self.arrive_time = {}
+        self.leave_time = {}
 
     def add_place(self, location: Place):
         if isinstance(location, (list, set, tuple)):
@@ -68,3 +70,7 @@ class DayItinerary:
         time = origin_to_destination_transport.get_time_transport_to(destination)
         mode = origin_to_destination_transport.get_mode_transport_to(destination)
         return time, mode
+
+    def set_arrive_time(self, place:Place):
+        self.arrive_time[place.place_id] = None
+
