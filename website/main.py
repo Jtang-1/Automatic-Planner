@@ -213,8 +213,8 @@ def process_place_test(new_place: Place):
 if __name__ == "__main__":
     test = True
 
-    test_LA = True
-    test_SF = False
+    test_LA = False
+    test_SF = True
 
     if not test:
         app.run(debug=True)
@@ -296,4 +296,5 @@ if __name__ == "__main__":
 
         for location in trip_itinerary_test.nonvisted_locations:
             print("unvisited location is", location.name)
-        remove_place(Southcoast_details["place_id"])
+        if test_LA:
+            remove_place(Southcoast_details["place_id"])

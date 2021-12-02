@@ -1,33 +1,33 @@
 import datetime
 
-# NEED TO STORE OPEN TIME/ CLOSE TIMES AS DICTIONARY CONTAINING LIST AS VALUE. WHEN CHECKING is_open_start_of_visit
-# IN SHORTEST PATH, NEED TO CHECK IF BETWEEN OPEN AND CLOSE TIME
-# IN GENERAL, WHEN READING INFO, USE open_close times = zip(OPEN_TIMES["day"], CLOSE_TIMES["day"]). For time in
-# For open_time, close_time in open_close_times...
-def create_open_close_times(opening_hours, state: str = "open") -> {int, datetime.time}:
+
+def create_open_close_times(opening_hours, state: str = "open") -> {int: [datetime.time]}:
     state_times = {}
     if opening_hours is None or is_always_open(opening_hours["periods"][0]):
         if state == "open":
-            return dict.fromkeys([0, 1, 2, 3, 4, 5, 6], datetime.time(0, 0))
+            return dict.fromkeys([0, 1, 2, 3, 4, 5, 6], [datetime.time(0, 0)])
         if state == "close":
-            return dict.fromkeys([0, 1, 2, 3, 4, 5, 6], datetime.time(23, 59, 59))
+            return dict.fromkeys([0, 1, 2, 3, 4, 5, 6], [datetime.time(23, 59, 59)])
     day_of_week_count = 0
     for period in opening_hours["periods"]:
-        while day_of_week_count < period["open"]["day"]:
-            # None signifies closed for day
-            state_time = None
-            state_times[day_of_week_count] = state_time
-            day_of_week_count += 1
         open_day = period["open"]["day"]
+        while day_of_week_count < open_day:
+            # None signifies closed for day
+            state_times[day_of_week_count] = None
+            day_of_week_count += 1
+        if day_of_week_count not in state_times and day_of_week_count < 7:
+            state_times[day_of_week_count] = []
         close_day = period["close"]["day"]
-        if state == "close" and close_day >= (open_day+1) % 7:
+        if state == "close" and close_day == (open_day+1) % 7:
             state_time = datetime.time(23, 59)
         else:
             state_time_hour = period[state]["hours"]
             state_time_minute = period[state]["minutes"]
             state_time = datetime.time(state_time_hour, state_time_minute)
-        state_times[open_day] = state_time
-        day_of_week_count += 1
+        day_of_week_count = open_day + 1
+        state_times[open_day].append(state_time)
+    print("final statetime is", state_times)
+
     return state_times
 
 

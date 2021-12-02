@@ -131,7 +131,7 @@ def add_first_destination(day_plan: DayItinerary):
             break
         print("in start of for loop of add_first_destination, farthest neighbor is", farthest_neighbor.name)
         if should_visit(day_plan, home, farthest_neighbor):
-            print("location has been added to first day")
+            print("location has been added to first destination")
             add_location_to_day_itinerary(day_plan, home, farthest_neighbor)
             break
         elif only_has_not_opened_places_remain():
@@ -166,8 +166,7 @@ def should_visit(day_plan: DayItinerary, current_place: Place, next_place: Attra
         skipped_places.add(next_place)
         return False
 
-    if day_plan.minutes_spent + next_place.visit_minutes > day_minutes or not is_open_end_of_visit(day_plan,
-                                                                                                   next_place):
+    if day_plan.minutes_spent + next_place.visit_minutes > day_minutes:
         print("did not visit", next_place.name, "visit exceeds allocated day time, closed before end of visit")
         skipped_places.add(next_place)
         return False
@@ -176,9 +175,13 @@ def should_visit(day_plan: DayItinerary, current_place: Place, next_place: Attra
     modify_graph.add_edge_transport_time(current_place, next_place, next_place_transport_minutes,
                                          next_place_transport_mode)
     # Check place is opened by the time you arrive
-    if not is_open_start_of_visit(day_plan, next_place, next_place_transport_minutes) and next_place not in has_not_opened_places:
+    if not is_open_after_transport_start_of_visit(day_plan, next_place, next_place_transport_minutes):
         print("place added to not open", next_place.name)
-        has_not_opened_places.add(next_place)
+        if is_has_not_opened_yet(day_plan, next_place, next_place_transport_minutes) and next_place not in has_not_opened_places:
+            has_not_opened_places.add(next_place)
+        # Completely closed for the day
+        else:
+            skipped_places.add(next_place)
         return False
     # Check enough time in day to visit
     if day_plan.minutes_spent + next_place.visit_minutes + next_place_transport_minutes > day_minutes \
@@ -195,38 +198,53 @@ def should_visit(day_plan: DayItinerary, current_place: Place, next_place: Attra
     return True
 
 
-# Does not account transport time
-def is_open_start_of_visit(day_plan: DayItinerary, next_place: Attraction, next_place_transport_minutes: int) -> bool:
+def is_has_not_opened_yet(day_plan: DayItinerary, next_place: Attraction, next_place_transport_minutes: int) -> bool:
     current_time = day_plan.current_date_time.time()
     current_day_of_week = day_plan.day_of_week
-    next_place_open_time = next_place.open_times[current_day_of_week]
-    if time_to_minutes(next_place_open_time) <= time_to_minutes(current_time) + next_place_transport_minutes:
-        return True
+    time_after_transport_minutes = time_to_minutes(current_time) + next_place_transport_minutes
+    for next_place_open_time in next_place.open_times[current_day_of_week]:
+        if time_after_transport_minutes - time_to_minutes(next_place_open_time) < 0:
+            return True
     return False
 
 
-# Does not account transport time
-def is_open_end_of_visit(day_plan: DayItinerary, next_place: Attraction) -> bool:
-    visit_time_delta = datetime.timedelta(minutes=next_place.visit_minutes)
-    time_after_visit = (day_plan.current_date_time + visit_time_delta).time()
+# Accounts transport time
+def is_open_after_transport_start_of_visit(day_plan: DayItinerary, next_place: Attraction, next_place_transport_minutes: int) -> bool:
+    current_time = day_plan.current_date_time.time()
     current_day_of_week = day_plan.day_of_week
-    next_place_close_time = next_place.close_times[current_day_of_week]
-    if time_after_visit <= next_place_close_time:
-        return True
+    time_after_transport_minutes = time_to_minutes(current_time) + next_place_transport_minutes
+    print("next_place.open_times[current_day_of_week] is ", next_place.open_times[current_day_of_week])
+    next_place_open_close_time = zip(next_place.open_times[current_day_of_week], next_place.close_times[current_day_of_week])
+    for next_place_open_time, next_place_close_time in next_place_open_close_time:
+        if time_to_minutes(next_place_open_time) <= time_after_transport_minutes<= time_to_minutes(next_place_close_time):
+            return True
     return False
+
+
+# # Does not account transport time
+# def is_open_end_of_visit(day_plan: DayItinerary, next_place: Attraction) -> bool:
+#     visit_time_delta = datetime.timedelta(minutes=next_place.visit_minutes)
+#     time_after_visit = (day_plan.current_date_time + visit_time_delta).time()
+#     current_day_of_week = day_plan.day_of_week
+#     next_place_close_time = next_place.close_times[current_day_of_week]
+#     if time_after_visit <= next_place_close_time:
+#         return True
+#     return False
 
 
 # Accounts transport time
 def is_open_after_transport_end_of_visit(day_plan: DayItinerary, next_place: Attraction,
                                          next_place_transport_minutes) -> bool:
-    transport_time_delta = datetime.timedelta(minutes=next_place_transport_minutes)
-    visit_time_delta = datetime.timedelta(minutes=next_place.visit_minutes)
-    time_after_transport_and_visit = (day_plan.current_date_time + transport_time_delta + visit_time_delta).time()
+    current_time = day_plan.current_date_time.time()
     current_day_of_week = day_plan.day_of_week
-    next_place_close_time = next_place.close_times[current_day_of_week]
+    time_after_transport_and_visit = time_to_minutes(current_time) + next_place_transport_minutes + next_place.visit_minutes
+    next_place_open_close_time = zip(next_place.open_times[current_day_of_week],
+                                     next_place.close_times[current_day_of_week])
     # print("in open during visit", next_place.name, "close time is", next_place_close_time,"current time is", day_plan.current_date_time.time(), "time after transport and visit is", time_after_transport_and_visit)
-    if time_after_transport_and_visit <= next_place_close_time:
-        return True
+    for next_place_open_time, next_place_close_time in next_place_open_close_time:
+        if time_to_minutes(next_place_open_time) <= time_after_transport_and_visit\
+                <= time_to_minutes(next_place_close_time):
+            return True
     return False
 
 
@@ -310,6 +328,8 @@ def only_has_not_opened_places_remain() -> bool:
 # Need to check if the place chosen can be visited. Travel time isn't too far, can return to hotel in time, within closing time, etc..)
 def find_has_not_opened_place_minus_wait_and_travel_time(day_plan: DayItinerary) -> Place:
     shortest_time = float('inf')
+    current_day_of_week = day_plan.day_of_week
+    current_time_minutes = time_to_minutes(day_plan.current_time)
     current_place = day_plan.locations[-1]
     next_place = None
     final_minutes_to_shift = 0
@@ -317,14 +337,21 @@ def find_has_not_opened_place_minus_wait_and_travel_time(day_plan: DayItinerary)
     for place in has_not_opened_places:
         print("in for loop of find_has_not_opened_palce_min_wait_and_travel_time, place is", place.name)
         place_transport_minutes, place_transport_mode = get_next_place_transport_info(day_plan, place).values()
-        print("time_to_minutes(place.open_times[day_plan.date])", time_to_minutes(place.open_times[day_plan.day_of_week]))
         print("place_transport_minutes", place_transport_minutes)
         print("time_to_minutes(day_plan.current_time)", time_to_minutes(day_plan.current_time))
-        wait_and_travel_time = time_to_minutes(place.open_times[day_plan.day_of_week]) + \
-                               place_transport_minutes - \
-                               time_to_minutes(day_plan.current_time)
+        for next_place_open_time in place.open_times[current_day_of_week]:
+            print("in find_has_not_opened_place_minus_wait_and_travel_time for loop time_to_minutes(place.open_times[current_day_of_week])",
+                      time_to_minutes(next_place_open_time))
+            if current_time_minutes + place_transport_minutes < time_to_minutes(next_place_open_time):
+                print("in find_has_not_opened_place_minus_wait_and_travel_time for loop, in if time_to_minutes(place.open_times[current_day_of_week])",
+                      time_to_minutes(next_place_open_time))
+                wait_and_travel_time = time_to_minutes(next_place_open_time) + \
+                                       place_transport_minutes - \
+                                       current_time_minutes
+                minutes_to_shift = minutes_to_shift_to_place_minus_transport(day_plan, place, next_place_open_time)
+
+                break
         #  shift day time to next open place - transporation time ? (may not pass if should visit - may have rounding error.. of open after current time + transport)
-        minutes_to_shift = minutes_to_shift_to_place_minus_transport(day_plan, place)
         day_plan.add_minutes_spent(minutes_to_shift)
         print("wait_and_travel_time is", wait_and_travel_time, "shortest time is", shortest_time, "<?", wait_and_travel_time < shortest_time)
         if wait_and_travel_time < shortest_time and should_visit(day_plan, current_place, place):
@@ -336,9 +363,8 @@ def find_has_not_opened_place_minus_wait_and_travel_time(day_plan: DayItinerary)
     return next_place
 
 
-def minutes_to_shift_to_place_minus_transport(day_plan: DayItinerary, next_place: Place) -> int:
+def minutes_to_shift_to_place_minus_transport(day_plan: DayItinerary, next_place: Place, next_place_open_time: datetime.time) -> int:
     next_place_transport_minutes, next_place_transport_mode = get_next_place_transport_info(day_plan,
                                                                                             next_place).values()
-    next_place_open_time = next_place.open_times[day_plan.day_of_week]
     minutes_to_shift = time_to_minutes(next_place_open_time) - next_place_transport_minutes - time_to_minutes(day_plan.current_time)
     return minutes_to_shift
