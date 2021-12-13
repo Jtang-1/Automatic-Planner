@@ -264,9 +264,15 @@
     <div id="test">
     <ol type="1" id="locations">
         <option id="details"></option>
-        {% for location,place_id in locations %}
+        {% for location_name,place_id,location  in locations %}
             <li class="location" id="{{loop.index0}}">
-                <option class="locationName" id="{{place_id}}">{{location}}</option>
+                <div>
+                <option class="locationName" id="{{place_id}}">{{location_name}}</option>
+                {% if location.visit_minutes != None %}
+                    {{location.visit_minutes/60}} hours
+                {% endif %}
+                </div>
+
                 <button>remove</button>
             </li>
         {% endfor %}

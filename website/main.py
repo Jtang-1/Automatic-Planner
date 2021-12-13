@@ -24,12 +24,17 @@ def make_session_permanent():
 
 @app.route("/", methods=["POST", "GET"])
 def home():
+    locations = []
     if "location_name" not in session:
         session["location_name"] = []
         session["place_id"] = []
+        session["location"] = []
+    else:
+        for location in session["location"]:
+            locations.append(jsonpickle.decode(location))
     if "place_visiting_lat_lng" not in session:
         session["place_visiting_lat_lng"] = {"lat": None, "lng": None}
-    return render_template("home.html", locations=zip(session["location_name"], session["place_id"]),
+    return render_template("home.html", locations=zip(session["location_name"], session["place_id"], locations),
                            visit_place_lat=session["place_visiting_lat_lng"]["lat"],
                            visit_place_lng=session["place_visiting_lat_lng"]["lng"])
 
@@ -145,6 +150,7 @@ def removeLocation():
         remove_place(session["place_id"][place_id_index])
         del session["location_name"][place_id_index]
         del session["place_id"][place_id_index]
+        del session["location"][place_id_index]
         for place in session["location_name"]:
             print("in removeLocation, places left is", place)
     return redirect(url_for("home"))
@@ -156,6 +162,7 @@ def process_place(new_place: Place):
         modify_graph.add_edges(new_place)
         session["place_id"].append(new_place.place_id)
         session["location_name"].append(new_place.name)
+        session["location"].append(jsonpickle.encode(new_place))
 
 
 def remove_place(place_id: str):
@@ -211,7 +218,7 @@ def process_place_test(new_place: Place):
 
 
 if __name__ == "__main__":
-    test = True
+    test = False
 
     test_LA = False
     test_SF = True
@@ -220,8 +227,8 @@ if __name__ == "__main__":
         app.run(debug=True)
 
     if test:
-        start_date_test = datetime.datetime(2021, 12, 3)
-        end_date_test = datetime.datetime(2021, 12, 6)
+        start_date_test = datetime.datetime(2022, 12, 2)
+        end_date_test = datetime.datetime(2022, 12, 6)
         start_time_test = datetime.time(4)
         end_time_test = datetime.time(18)
 
@@ -291,8 +298,8 @@ if __name__ == "__main__":
         for day_itinerary in trip_itinerary_test.days_itinerary.values():
             current_day_of_week = day_itinerary.day_of_week
             print("current_day_of_week is", current_day_of_week)
-            print(list([count, location.name, location.visit_minutes, day_itinerary.current_date_time.time(), location.open_times, location.close_times] for count, location in enumerate(day_itinerary.locations)))
-            print(list([count, location.name, location.visit_minutes, day_itinerary.current_date_time.time()] for count,location in enumerate(day_itinerary.locations)))
+            print(list([count, location.name, location.visit_minutes, day_itinerary.current_date_time.time(), location.open_times, location.close_times] for count, location in enumerate(day_itinerary.scheduled_locations)))
+            print(list([count, location.name, location.arrive_time, location.visit_minutes, location.leave_time, day_itinerary.current_date_time.time()] for count,location in enumerate(day_itinerary.scheduled_locations)))
 
         for location in trip_itinerary_test.nonvisted_locations:
             print("unvisited location is", location.name)

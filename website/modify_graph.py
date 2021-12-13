@@ -25,7 +25,7 @@ def create_attraction(place_details, visit_hours):
     opening_hours = key_value("opening_hours", place_details)
     business_status = key_value("business_status", place_details)
     visit_minutes = visit_hours * 60
-    print("This place is added:", place_details["name"])
+    print("This place is created:", place_details["name"])
     return Attraction(place_details["place_id"], place_details["name"], place_type,
                       opening_hours, business_status, visit_minutes)
 

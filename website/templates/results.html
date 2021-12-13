@@ -15,16 +15,16 @@
         <header>Date: {{day_itinerary.date}}</header>
         {% endif %}
         <option id="details"></option>
-        {% for location in day_itinerary.locations %}
+        {% for scheduled_location in day_itinerary.scheduled_locations %}
         <p>
-            <li>{{location.name}}
-            {% if loop.index0 != 0 and loop.index0 != day_itinerary.locations|count-1%}
-                {{location.visit_minutes/60}}
+            <li>{{scheduled_location.name}}
+            {% if loop.index0 != 0 and loop.index0 != day_itinerary.scheduled_locations|count-1%}
+                {{scheduled_location.visit_minutes/60}}
             {% endif %}
             </li>
             <div>
-                {% if loop.index0 != day_itinerary.locations|count-1 %}
-                    {% set time, mode = day_itinerary.transport_info_from(location) %}
+                {% if loop.index0 != day_itinerary.scheduled_locations|count-1 %}
+                    {% set time, mode = day_itinerary.transport_info_from(scheduled_location) %}
                     {{mode}}:
                     {{time}} minutes
                 {% endif %}
