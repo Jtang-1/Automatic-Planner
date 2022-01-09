@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, session, redirect, url_for
+from flask_session import Session
 from website import website_helpers
 from datetime import timedelta
 import secrets
@@ -9,13 +10,21 @@ from trip_itinerary import TripItinerary
 from day_itinerary import DayItinerary
 import datetime
 import jsonpickle
+import redis
+
 from place_model import google_map_distance_matrix as dist_matrix
 
 # http://127.0.0.1:5000
 app = Flask(__name__)
 app.secret_key = secrets.token_bytes(32)
-app.permanent_session_lifetime = timedelta(days=5)
 
+#Configure Redis
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=5)
+app.config['SESSION_TYPE'] = 'redis'
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_REDIS'] = redis.from_url('redis://localhost:6379')
+
+server_session = Session(app)
 
 @app.before_request
 def make_session_permanent():
@@ -43,6 +52,7 @@ def home():
 def receiveDestination():
     if request.method == "POST":
         print("in receive destination")
+        record_inputs_changed()
         place_details = request.get_json(force=True)
         print("place_details is", place_details)
         process_place(modify_graph.create_attraction(place_details, session["visit_hours"]))
@@ -52,6 +62,7 @@ def receiveDestination():
 @app.route("/receiveVisitHours", methods=["POST"])
 def receiveVisitHours():
     if request.method == "POST":
+        record_inputs_changed()
         visit_hours = request.get_json(force=True)
         session["visit_hours"] = visit_hours
     return redirect(url_for("home"))
@@ -60,6 +71,7 @@ def receiveVisitHours():
 @app.route("/receiveHome", methods=["POST"])
 def receiveHome():
     if request.method == "POST":
+        record_inputs_changed()
         place_details = request.get_json(force=True)
         process_place(modify_graph.create_home(place_details))
     return redirect(url_for("home"))
@@ -68,6 +80,7 @@ def receiveHome():
 @app.route("/receiveStartDate", methods=["POST"])
 def receiveStartDate():
     if request.method == "POST":
+        record_inputs_changed()
         start_date = request.get_json(force=True)["start_date"]
         year = int(start_date.split("-")[0])
         month = int(start_date.split("-")[1])
@@ -80,6 +93,7 @@ def receiveStartDate():
 @app.route("/receiveEndDate", methods=["POST"])
 def receiveEndDate():
     if request.method == "POST":
+        record_inputs_changed()
         end_date = request.get_json(force=True)["end_date"]
         year = int(end_date.split("-")[0])
         month = int(end_date.split("-")[1])
@@ -92,6 +106,7 @@ def receiveEndDate():
 @app.route("/receiveDayStartTime", methods=["POST"])
 def receiveDayStartTime():
     if request.method == "POST":
+        record_inputs_changed()
         start_time = request.get_json(force=True)["leave_time"]
         hour = int(start_time.split(":")[0])
         minute = int(start_time.split(":")[1])
@@ -103,6 +118,7 @@ def receiveDayStartTime():
 @app.route("/receiveDayEndTime", methods=["POST"])
 def receiveDayEndTime():
     if request.method == "POST":
+        record_inputs_changed()
         end_time = request.get_json(force=True)["return_time"]
         hour = int(end_time.split(":")[0])
         minute = int(end_time.split(":")[1])
@@ -126,6 +142,43 @@ def results():
     if request.method == "POST":
         print("checkbox value is", request.form.get("drivingAllowance"))
         if request.form.get("drivingAllowance") == "avoidDriving":
+            if "driving_allowance" in session and session["driving_allowance"]:
+                record_inputs_changed()
+            session["driving_allowance"] = False
+        else:
+            if "driving_allowance" in session and not session["driving_allowance"]:
+                record_inputs_changed()
+            session["driving_allowance"] = True
+        print("were inputs changed?", session["inputs_changed"])
+        if session["inputs_changed"]:
+            itinerary = create_trip_itinerary()
+            itinerary = shortest_path.create_itinerary(itinerary)
+            session["itinerary"] = jsonpickle.encode(itinerary)
+            print("trip plan is")
+            for day_itinerary in itinerary.days_itinerary.values():
+                current_day_of_week = day_itinerary.day_of_week
+                print("current_day_of_week is", current_day_of_week)
+                print(list([count, location.name, location.visit_minutes, day_itinerary.current_date_time.time(), location.open_times, location.close_times] for count, location in enumerate(day_itinerary.scheduled_locations)))
+                print(list([count, location.name, location.arrive_time, location.visit_minutes, location.leave_time, day_itinerary.current_date_time.time()] for count,location in enumerate(day_itinerary.scheduled_locations)))
+            print("unvisited locations are")
+            print(list([location.name] for location in itinerary.nonvisted_locations))
+            print("itinerary is saved")
+            print("itinerary is", session["itinerary"])
+            session["inputs_changed"] = False
+        return redirect(url_for("results"))
+    # fix so saved itinerary is just the needed info, without the objects since objects can't be converted correctly to JSON
+    if request.method == "GET":
+        print("in GET of results")
+        pass
+    print("session[inputs changed] is", session["inputs_changed"])
+    return render_template("results.html", itinerary=jsonpickle.decode(session["itinerary"]))
+
+
+@app.route("/results_test", methods=["GET", "POST"])
+def results_test():
+    if request.method == "POST":
+        print("checkbox value is", request.form.get("drivingAllowance"))
+        if request.form.get("drivingAllowance") == "avoidDriving":
             session["driving_allowance"] = False
         else:
             session["driving_allowance"] = True
@@ -136,7 +189,7 @@ def results():
     # fix so saved itinerary is just the needed info, without the objects since objects can't be converted correctly to JSON
     if request.method == "GET":
         pass
-    return render_template("results.html", itinerary=jsonpickle.decode(session["itinerary"]))
+    return render_template("results.html", itinerary=trip_itinerary_test)
 
 
 @app.route("/removeLocation", methods=["POST"])
@@ -155,6 +208,8 @@ def removeLocation():
             print("in removeLocation, places left is", place)
     return redirect(url_for("home"))
 
+def record_inputs_changed():
+    session["inputs_changed"] = True
 
 def process_place(new_place: Place):
     if new_place.place_id not in session["place_id"]:
@@ -223,9 +278,6 @@ if __name__ == "__main__":
     test_LA = False
     test_SF = True
 
-    if not test:
-        app.run(debug=True)
-
     if test:
         start_date_test = datetime.datetime(2022, 12, 2)
         end_date_test = datetime.datetime(2022, 12, 6)
@@ -272,27 +324,28 @@ if __name__ == "__main__":
             Lowell_details = {'name': 'Lowell High School', 'place_id': 'ChIJLbVZeqN9j4AR_U7DEiiHSNY', 'formatted_address': '1101 Eucalyptus Dr, San Francisco, CA 94132, USA', 'type': ['secondary_school', 'school', 'point_of_interest', 'establishment'], 'business_status': 'OPERATIONAL'}
             SanTung_details = {'name': 'San Tung', 'place_id': 'ChIJVwLhg12HhYARcIdFDox3HxM', 'formatted_address': '1031 Irving St, San Francisco, CA 94122, USA', 'type': ['restaurant', 'food', 'point_of_interest', 'establishment'], 'opening_hours': {'open_now': False, 'periods': [{'close': {'day': 0, 'time': '1500', 'hours': 15, 'minutes': 0}, 'open': {'day': 0, 'time': '1100', 'hours': 11, 'minutes': 0}}, {'close': {'day': 0, 'time': '2030', 'hours': 20, 'minutes': 30}, 'open': {'day': 0, 'time': '1630', 'hours': 16, 'minutes': 30}}, {'close': {'day': 1, 'time': '1500', 'hours': 15, 'minutes': 0}, 'open': {'day': 1, 'time': '1100', 'hours': 11, 'minutes': 0}}, {'close': {'day': 1, 'time': '2030', 'hours': 20, 'minutes': 30}, 'open': {'day': 1, 'time': '1630', 'hours': 16, 'minutes': 30}}, {'close': {'day': 4, 'time': '1500', 'hours': 15, 'minutes': 0}, 'open': {'day': 4, 'time': '1100', 'hours': 11, 'minutes': 0}}, {'close': {'day': 4, 'time': '2030', 'hours': 20, 'minutes': 30}, 'open': {'day': 4, 'time': '1630', 'hours': 16, 'minutes': 30}}, {'close': {'day': 5, 'time': '1500', 'hours': 15, 'minutes': 0}, 'open': {'day': 5, 'time': '1100', 'hours': 11, 'minutes': 0}}, {'close': {'day': 5, 'time': '2030', 'hours': 20, 'minutes': 30}, 'open': {'day': 5, 'time': '1630', 'hours': 16, 'minutes': 30}}, {'close': {'day': 6, 'time': '1500', 'hours': 15, 'minutes': 0}, 'open': {'day': 6, 'time': '1100', 'hours': 11, 'minutes': 0}}, {'close': {'day': 6, 'time': '2030', 'hours': 20, 'minutes': 30}, 'open': {'day': 6, 'time': '1630', 'hours': 16, 'minutes': 30}}], 'weekday_text': ['Monday: 11:00 AM – 3:00 PM, 4:30 – 8:30 PM', 'Tuesday: Closed', 'Wednesday: Closed', 'Thursday: 11:00 AM – 3:00 PM, 4:30 – 8:30 PM', 'Friday: 11:00 AM – 3:00 PM, 4:30 – 8:30 PM', 'Saturday: 11:00 AM – 3:00 PM, 4:30 – 8:30 PM', 'Sunday: 11:00 AM – 3:00 PM, 4:30 – 8:30 PM']}, 'business_status': 'OPERATIONAL'}
             Golden_gate_park_details = {'name': 'Golden Gate Park', 'place_id': 'ChIJY_dFYHKHhYARMKc772iLvnE', 'formatted_address': 'San Francisco, CA, USA', 'type': ['park', 'tourist_attraction', 'point_of_interest', 'establishment'], 'opening_hours': {'open_now': True, 'periods': [{'open': {'day': 0, 'time': '0000', 'hours': 0, 'minutes': 0}}], 'weekday_text': ['Monday: Open 24 hours', 'Tuesday: Open 24 hours', 'Wednesday: Open 24 hours', 'Thursday: Open 24 hours', 'Friday: Open 24 hours', 'Saturday: Open 24 hours', 'Sunday: Open 24 hours']}, 'business_status': 'OPERATIONAL'}
-            Twin_peaks_details = {'name': 'Twin Peaks', 'place_id': 'ChIJt3HwrOJ9j4ARbW6uAcmhz7I', 'formatted_address': '501 Twin Peaks Blvd, San Francisco, CA 94114, USA', 'type': ['park', 'point_of_interest', 'establishment'], 'opening_hours': {'open_now': True, 'periods': [{'close': {'day': 1, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 0, 'time': '0500', 'hours': 5, 'minutes': 0}}, {'close': {'day': 2, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 1, 'time': '0500', 'hours': 5, 'minutes': 0}}, {'close': {'day': 3, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 2, 'time': '0500', 'hours': 5, 'minutes': 0}}, {'close': {'day': 4, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 3, 'time': '0500', 'hours': 5, 'minutes': 0}}, {'close': {'day': 5, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 4, 'time': '0500', 'hours': 5, 'minutes': 0}}, {'close': {'day': 6, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 5, 'time': '0500', 'hours': 5, 'minutes': 0}}, {'close': {'day': 0, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 6, 'time': '0500', 'hours': 5, 'minutes': 0}}], 'weekday_text': ['Monday: 5:00 AM – 12:00 AM', 'Tuesday: 5:00 AM – 12:00 AM', 'Wednesday: 5:00 AM – 12:00 AM', 'Thursday: 5:00 AM – 12:00 AM', 'Friday: 5:00 AM – 12:00 AM', 'Saturday: 5:00 AM – 12:00 AM', 'Sunday: 5:00 AM – 12:00 AM']}, 'business_status': 'OPERATIONAL'}
-            Lands_end_details = {'name': 'Lands End Lookout', 'place_id': 'ChIJud4Rs7KHhYARZX7u45tQsjA', 'formatted_address': '680 Point Lobos Ave, San Francisco, CA 94121, USA', 'type': ['tourist_attraction', 'travel_agency', 'park', 'point_of_interest', 'store', 'establishment'], 'opening_hours': {'open_now': False, 'periods': [{'close': {'day': 0, 'time': '1700', 'hours': 17, 'minutes': 0}, 'open': {'day': 0, 'time': '0900', 'hours': 9, 'minutes': 0}}, {'close': {'day': 1, 'time': '1700', 'hours': 17, 'minutes': 0}, 'open': {'day': 1, 'time': '0900', 'hours': 9, 'minutes': 0}}, {'close': {'day': 5, 'time': '1700', 'hours': 17, 'minutes': 0}, 'open': {'day': 5, 'time': '0900', 'hours': 9, 'minutes': 0}}, {'close': {'day': 6, 'time': '1700', 'hours': 17, 'minutes': 0}, 'open': {'day': 6, 'time': '0900', 'hours': 9, 'minutes': 0}}], 'weekday_text': ['Monday: 9:00 AM – 5:00 PM', 'Tuesday: Closed', 'Wednesday: Closed', 'Thursday: Closed', 'Friday: 9:00 AM – 5:00 PM', 'Saturday: 9:00 AM – 5:00 PM', 'Sunday: 9:00 AM – 5:00 PM']}, 'business_status': 'OPERATIONAL'}
-            Hmart_details = {'name': 'H Mart San Francisco', 'place_id': 'ChIJ7aBXZ6F9j4ARIwdM6ks0JgE', 'formatted_address': '3995 Alemany Blvd, San Francisco, CA 94132, USA', 'type': ['grocery_or_supermarket', 'food', 'point_of_interest', 'store', 'establishment'], 'opening_hours': {'open_now': False, 'periods': [{'close': {'day': 0, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 0, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 1, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 1, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 2, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 2, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 3, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 3, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 4, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 4, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 5, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 5, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 6, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 6, 'time': '0800', 'hours': 8, 'minutes': 0}}], 'weekday_text': ['Monday: 8:00 AM – 10:00 PM', 'Tuesday: 8:00 AM – 10:00 PM', 'Wednesday: 8:00 AM – 10:00 PM', 'Thursday: 8:00 AM – 10:00 PM', 'Friday: 8:00 AM – 10:00 PM', 'Saturday: 8:00 AM – 10:00 PM', 'Sunday: 8:00 AM – 10:00 PM']}, 'business_status': 'OPERATIONAL'}
+            # Twin_peaks_details = {'name': 'Twin Peaks', 'place_id': 'ChIJt3HwrOJ9j4ARbW6uAcmhz7I', 'formatted_address': '501 Twin Peaks Blvd, San Francisco, CA 94114, USA', 'type': ['park', 'point_of_interest', 'establishment'], 'opening_hours': {'open_now': True, 'periods': [{'close': {'day': 1, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 0, 'time': '0500', 'hours': 5, 'minutes': 0}}, {'close': {'day': 2, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 1, 'time': '0500', 'hours': 5, 'minutes': 0}}, {'close': {'day': 3, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 2, 'time': '0500', 'hours': 5, 'minutes': 0}}, {'close': {'day': 4, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 3, 'time': '0500', 'hours': 5, 'minutes': 0}}, {'close': {'day': 5, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 4, 'time': '0500', 'hours': 5, 'minutes': 0}}, {'close': {'day': 6, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 5, 'time': '0500', 'hours': 5, 'minutes': 0}}, {'close': {'day': 0, 'time': '0000', 'hours': 0, 'minutes': 0}, 'open': {'day': 6, 'time': '0500', 'hours': 5, 'minutes': 0}}], 'weekday_text': ['Monday: 5:00 AM – 12:00 AM', 'Tuesday: 5:00 AM – 12:00 AM', 'Wednesday: 5:00 AM – 12:00 AM', 'Thursday: 5:00 AM – 12:00 AM', 'Friday: 5:00 AM – 12:00 AM', 'Saturday: 5:00 AM – 12:00 AM', 'Sunday: 5:00 AM – 12:00 AM']}, 'business_status': 'OPERATIONAL'}
+            # Lands_end_details = {'name': 'Lands End Lookout', 'place_id': 'ChIJud4Rs7KHhYARZX7u45tQsjA', 'formatted_address': '680 Point Lobos Ave, San Francisco, CA 94121, USA', 'type': ['tourist_attraction', 'travel_agency', 'park', 'point_of_interest', 'store', 'establishment'], 'opening_hours': {'open_now': False, 'periods': [{'close': {'day': 0, 'time': '1700', 'hours': 17, 'minutes': 0}, 'open': {'day': 0, 'time': '0900', 'hours': 9, 'minutes': 0}}, {'close': {'day': 1, 'time': '1700', 'hours': 17, 'minutes': 0}, 'open': {'day': 1, 'time': '0900', 'hours': 9, 'minutes': 0}}, {'close': {'day': 5, 'time': '1700', 'hours': 17, 'minutes': 0}, 'open': {'day': 5, 'time': '0900', 'hours': 9, 'minutes': 0}}, {'close': {'day': 6, 'time': '1700', 'hours': 17, 'minutes': 0}, 'open': {'day': 6, 'time': '0900', 'hours': 9, 'minutes': 0}}], 'weekday_text': ['Monday: 9:00 AM – 5:00 PM', 'Tuesday: Closed', 'Wednesday: Closed', 'Thursday: Closed', 'Friday: 9:00 AM – 5:00 PM', 'Saturday: 9:00 AM – 5:00 PM', 'Sunday: 9:00 AM – 5:00 PM']}, 'business_status': 'OPERATIONAL'}
+            # Hmart_details = {'name': 'H Mart San Francisco', 'place_id': 'ChIJ7aBXZ6F9j4ARIwdM6ks0JgE', 'formatted_address': '3995 Alemany Blvd, San Francisco, CA 94132, USA', 'type': ['grocery_or_supermarket', 'food', 'point_of_interest', 'store', 'establishment'], 'opening_hours': {'open_now': False, 'periods': [{'close': {'day': 0, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 0, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 1, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 1, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 2, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 2, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 3, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 3, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 4, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 4, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 5, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 5, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 6, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 6, 'time': '0800', 'hours': 8, 'minutes': 0}}], 'weekday_text': ['Monday: 8:00 AM – 10:00 PM', 'Tuesday: 8:00 AM – 10:00 PM', 'Wednesday: 8:00 AM – 10:00 PM', 'Thursday: 8:00 AM – 10:00 PM', 'Friday: 8:00 AM – 10:00 PM', 'Saturday: 8:00 AM – 10:00 PM', 'Sunday: 8:00 AM – 10:00 PM']}, 'business_status': 'OPERATIONAL'}
 
             Lowell = modify_graph.create_home(Lowell_details)
             SanTung = modify_graph.create_attraction(SanTung_details, 1)
             Golden_gate_park = modify_graph.create_attraction(Golden_gate_park_details, 2)
-            Twin_peaks = modify_graph.create_attraction(Twin_peaks_details, 1)
-            Lands_end = modify_graph.create_attraction(Lands_end_details, 6)
-            Hmart = modify_graph.create_attraction(Hmart_details, 1)
+            # Twin_peaks = modify_graph.create_attraction(Twin_peaks_details, 1)
+            # Lands_end = modify_graph.create_attraction(Lands_end_details, 6)
+            # Hmart = modify_graph.create_attraction(Hmart_details, 1)
 
             process_place_test(Lowell)
             process_place_test(SanTung)
             process_place_test(Golden_gate_park)
-            process_place_test(Twin_peaks)
-            process_place_test(Lands_end)
-            process_place_test(Hmart)
+            # process_place_test(Twin_peaks)
+            # process_place_test(Lands_end)
+            # process_place_test(Hmart)
 
 
         trip_itinerary_test = create_trip_itinerary_test(start_date_test, end_date_test, start_time_test, end_time_test)
         trip_itinerary_test = shortest_path.create_itinerary(trip_itinerary_test)
+
         #print("trip days is", trip_itinerary_test.trip_days)
         print("days_itinerary in Trip_itinerary", trip_itinerary_test.days_itinerary)
         for day_itinerary in trip_itinerary_test.days_itinerary.values():
@@ -305,3 +358,5 @@ if __name__ == "__main__":
             print("unvisited location is", location.name)
         if test_LA:
             remove_place(Southcoast_details["place_id"])
+
+    app.run(debug=True)
