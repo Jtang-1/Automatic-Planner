@@ -1,21 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>Automatic Planner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}" type="text/css"/>
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
     <meta charset="UTF-8">
-    <title>Title</title>
     <script>
         let autocomplete;
         function initMap(){
-            visiting_area_autocomplete = create_autocomplete_visiting_area_obj("visiting_area");
+            visiting_area_autocomplete = create_autocomplete_visiting_area_obj("visiting_area_input");
             visiting_area_autocomplete.addListener('place_changed', onVisitingAreaChanged);
-            console.log("Test",{{visit_place_lat}},{{visit_place_lng}});
-            destination_autocomplete = createAutocompleteObject("destination_autocomplete",{{visit_place_lat}},{{visit_place_lng}});
-            destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);
-            console.log("Test",{{visit_place_lat}},{{visit_place_lng}});
-            home_autocomplete = createAutocompleteObject("home_autocomplete",{{visit_place_lat}},{{visit_place_lng}});
-            home_autocomplete.addListener('place_changed', onHomePlaceChanged);
+<!--            console.log("Test",{{visit_place_lat}},{{visit_place_lng}});-->
+<!--            destination_autocomplete = createAutocompleteObject("destination_autocomplete",{{visit_place_lat}},{{visit_place_lng}});-->
+<!--            destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);-->
+<!--            console.log("Test",{{visit_place_lat}},{{visit_place_lng}});-->
+<!--            home_autocomplete = createAutocompleteObject("home_autocomplete",{{visit_place_lat}},{{visit_place_lng}});-->
+<!--            home_autocomplete.addListener('place_changed', onHomePlaceChanged);-->
 
+        }
+
+        function initDestHomeAutocomplete(visit_place_lat, visit_place_lng){
+            destination_autocomplete = createAutocompleteObject("destination_autocomplete",visit_place_lat,visit_place_lng);
+            destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);
+            console.log("in initDestHomeAutocomplete",visit_place_lat,visit_place_lng);
+            home_autocomplete = createAutocompleteObject("home_autocomplete",visit_place_lat,visit_place_lng);
+            home_autocomplete.addListener('place_changed', onHomePlaceChanged);
         }
         window.globalDestinationPlaceChangedCalledTimes = 0;
         function onDestinationPlaceChanged(){
@@ -99,11 +109,25 @@
                         window.globalVisitingAreaChangedCalledIterator += 1;
                         return;
                     }
+                    hideVisitingAreaInput();
                     sendPlaceInfo(place,"/receiveVisitingArea");
-                    document.getElementById("visiting_area").value = "";
+                    document.getElementById("visiting_area_input").value = "";
                     setTimeout(function(){
-                        window.location.reload();
-                        }, 1000);
+                        $.ajax({
+                            url:"/loadVisitingArea",
+                            type: "POST",
+                            dataType: "json",
+                            success: function(data){
+                                lat = data["lat"]
+                                lng = data["lng"]
+                                console.log("The data is,", lat, "and", lng);
+                                initDestHomeAutocomplete(lat,lng)
+                                }
+                            });
+                        }, 500);
+<!--                    setTimeout(function(){-->
+<!--                        window.location.reload();-->
+<!--                        }, 1000);-->
                     form.setAttribute('eventWithSubmit','false');
                     window.globalVisitingAreaChangedCalledTimes = 0;
                 }
@@ -132,7 +156,7 @@
                 request.open("POST", url, true);
                 request.send(location);
                 setTimeout(function(){
-                    $("#test").load(" #test > *");
+                    $("#locations_block").load(" #locations_block > *");
                 }, 1200);
 
         }
@@ -168,7 +192,7 @@
                 {   sessionToken: sessionToken,
                     types: ["(regions)"],
                     componentRestrictions: {"country": ["us"]},
-                    fields: ["place_id", "geometry"]
+                    fields: ["place_id", "geometry", "name"]
                 });
             return autocomplete;
         }
@@ -180,6 +204,18 @@
                     "start_date":date
                     });
             sendInfo(start_date, "/receiveStartDate")
+            setTimeout(function(){
+                        $.ajax({
+                            url:"/loadStartDate",
+                            type: "POST",
+                            dataType: "json",
+                            success: function(data){
+                                iso_start_date_str = data["iso_start_date_str"]
+                                localStorage.setItem('start_date', iso_start_date_str);
+                                document.getElementById("start_date").value = iso_start_date_str;
+                                }
+                            });
+                        }, 200);
         }
 
         function onEndDateChanged(){
@@ -189,6 +225,18 @@
                     "end_date":date
                     });
             sendInfo(end_date, "/receiveEndDate")
+            setTimeout(function(){
+                        $.ajax({
+                            url:"/loadEndDate",
+                            type: "POST",
+                            dataType: "json",
+                            success: function(data){
+                                iso_end_date_str = data["iso_end_date_str"]
+                                localStorage.setItem('end_date', iso_end_date_str);
+                                document.getElementById("end_date").value = iso_end_date_str;
+                                }
+                            });
+                        }, 400);
         }
 
         function onLeaveTimeChanged(){
@@ -214,19 +262,32 @@
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBncbwIJ2Ug0E7oPoYubcplGGlD-dEuo98&libraries=places&callback=initMap"
     defer>
     </script>
+</head>
 
-    <form id="visiting_area_form"action="/" method="POST">
-        <div><label for="visiting_area">Where are you visiting?</label>
-        <input type="text" id="visiting_area" style="width:300px" placeholder="e.g. New York, San Francisco, Tokyo">
-            <button> Submit </button>
+<body>
+    <header>
+        <h1>Automatic Planner</h1>
+        <p id="slogan"><i>Create the most efficient itinerary by minimizing travel time - leaving more time to be where you want to be</i></p>
+    </header>
+    <div id="visiting_area_div">
+        <form id="visiting_area_form"action="/" method="POST">
+            <div><label for="visiting_area_input">Where are you visiting?</label>
+            <input type="text" id="visiting_area_input" style="width:300px" placeholder="e.g. New York, San Francisco, Tokyo">
+                <button> Submit </button></div>
+        </form>
+        <div id="visiting_area_display" class="hidden">
+            <p>
+                Traveling to {{visit_place}}
+                <button onclick="showVisitingAreaInput()">Change Place</button>
+            </p>
         </div>
-    </form>
+    </div>
 
     <form action="/" method="POST">
         <div> </div><label>Dates</label>
-        <input type="date" id="start_date"  style="width:150px" onchange="onStartDateChanged()">
+        <input type="text" placeholder="MM/DD/YYYY" onfocus="(this.type='date')" onblur="(this.type='text')" id="start_date"  style="width:150px" onchange="onStartDateChanged()">
             through
-        <input type="date" id="end_date"  style="width:150px" onchange="onEndDateChanged()">
+        <input type="text" placeholder="MM/DD/YYYY" onfocus="(this.type='date')" onblur="(this.type='text')" id="end_date"  style="width:150px" onchange="onEndDateChanged()">
         </div>
     </form>
 
@@ -259,9 +320,8 @@
         <label><input type="checkbox" value="avoidDriving" name="drivingAllowance">Avoid Driving</label>
         <input type="submit" id="showSchedule" value = "Show Schedule">
     </form>
-</head>
-<body>
-    <div id="test">
+
+    <div id="locations_block">
     <ol type="1" id="locations">
         <option id="details"></option>
         {% for location_name,place_id,location  in locations %}
@@ -278,6 +338,6 @@
         {% endfor %}
     </ol>
     </div>
-</body>
 <script src="{{url_for('static', filename='main.js')}}"> defer></script>
+</body>
 </html>

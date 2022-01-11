@@ -32,14 +32,46 @@ function sendInfo(info, url){
     console.log("type in send info is", typeof info)
     request.send(info)
 }
-//addGlobalEventListener("click", "button", e => {
-//    console.log("hi")
-//    alert("hi")
-//
-//})
-
 function addGlobalEventListener(type, selector, callback){
     document.addEventListener(type, e=> {
         if (e.target.matches(selector)) callback(e)
     })
+}
+
+function hideVisitingAreaInput()
+{
+    localStorage.setItem('visiting_area_exists', 'True');
+    setTimeout(function(){
+        $("#visiting_area_display").load(" #visiting_area_display > *");
+        document.getElementById("visiting_area_form").style.display="None";
+        document.getElementById("visiting_area_display").style.display="block";
+        initMap();
+        }, 700);
+
+//        NEED TO FIGURE OUT HOW TO RELOAD VISITING AREA GEOMETRY DATA TO INIT MAP WITHOUT RELOADING PAGE
+//        USE AJAX
+
+}
+
+function showVisitingAreaInput()
+{
+    localStorage.removeItem('visiting_area_exists');
+    document.getElementById("visiting_area_form").style.display="block";
+    document.getElementById("visiting_area_display").style.display="None";
+
+}
+
+//Hide Visiting Area if already selected
+if (localStorage.getItem('visiting_area_exists')){
+    hideVisitingAreaInput()
+}
+
+//If start date exists
+if(localStorage.getItem('start_date')){
+    document.getElementById("start_date").value = localStorage.getItem('start_date');
+}
+
+//If end date exists
+if(localStorage.getItem('end_date')){
+    document.getElementById("end_date").value = localStorage.getItem('end_date');
 }

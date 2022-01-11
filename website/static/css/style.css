@@ -1,0 +1,39 @@
+body
+{
+    margin: 0px;
+    padding: 0px;
+    background-color: #D6E5FD;
+}
+
+header
+{
+
+    position: relative;
+    text-align: center;
+    height: 100px;
+    margin:0px;
+    display: block;
+    background-color: #F34F2C;
+}
+
+header h1{
+    position: absolute;
+    margin-top: 0px;
+    left: 60px;
+    top: 30px;
+
+}
+
+#slogan
+{
+    position: absolute;
+    right: 20px;
+    top: 70px;
+    margin:0px;
+    background-color: white;
+}
+
+.hidden
+{
+    display: None;
+}

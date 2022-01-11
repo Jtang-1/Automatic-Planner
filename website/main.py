@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from flask_session import Session
 from website import website_helpers
 from datetime import timedelta
@@ -38,6 +38,7 @@ def home():
         session["location_name"] = []
         session["place_id"] = []
         session["location"] = []
+        session["place_visiting_name"] = None
     else:
         for location in session["location"]:
             locations.append(jsonpickle.decode(location))
@@ -45,7 +46,8 @@ def home():
         session["place_visiting_lat_lng"] = {"lat": None, "lng": None}
     return render_template("home.html", locations=zip(session["location_name"], session["place_id"], locations),
                            visit_place_lat=session["place_visiting_lat_lng"]["lat"],
-                           visit_place_lng=session["place_visiting_lat_lng"]["lng"])
+                           visit_place_lng=session["place_visiting_lat_lng"]["lng"],
+                           visit_place=session["place_visiting_name"])
 
 
 @app.route("/receiveDestination", methods=["POST"])
@@ -57,7 +59,6 @@ def receiveDestination():
         print("place_details is", place_details)
         process_place(modify_graph.create_attraction(place_details, session["visit_hours"]))
     return redirect(url_for("home"))
-
 
 @app.route("/receiveVisitHours", methods=["POST"])
 def receiveVisitHours():
@@ -90,6 +91,12 @@ def receiveStartDate():
     return redirect(url_for("home"))
 
 
+@app.route("/loadStartDate", methods=["POST"])
+def loadStartDate():
+    iso_start_date_str = jsonpickle.decode(session["start_date"]).strftime("%Y-%m-%d")
+    return jsonify(iso_start_date_str=iso_start_date_str)
+
+
 @app.route("/receiveEndDate", methods=["POST"])
 def receiveEndDate():
     if request.method == "POST":
@@ -101,6 +108,13 @@ def receiveEndDate():
         end_date = datetime.datetime(year, month, day)
         session["end_date"] = jsonpickle.encode(end_date)
     return redirect(url_for("home"))
+
+
+@app.route("/loadEndDate", methods=["POST"])
+def loadEndDate():
+    iso_end_date_str = jsonpickle.decode(session["end_date"]).strftime("%Y-%m-%d")
+    print("iso_end_date_str is", iso_end_date_str)
+    return jsonify(iso_end_date_str=iso_end_date_str)
 
 
 @app.route("/receiveDayStartTime", methods=["POST"])
@@ -131,11 +145,19 @@ def receiveDayEndTime():
 def receiveVisitingArea():
     if request.method == "POST":
         place_details = request.get_json(force=True)
+        print("place details is", place_details)
+        print("visitng place before change is,", session["place_visiting_name"])
+        session["place_visiting_name"] = place_details["name"]
         place_lat_lng = place_details["geometry"]["location"]
         session["place_visiting_lat_lng"] = place_lat_lng
 
     return redirect(url_for("home"))
 
+@app.route("/loadVisitingArea", methods=["POST"])
+def loadVisitingArea():
+    lat = session["place_visiting_lat_lng"]["lat"]
+    lng = session["place_visiting_lat_lng"]["lng"]
+    return jsonify(lat=lat, lng=lng)
 
 @app.route("/results", methods=["GET", "POST"])
 def results():
@@ -205,7 +227,7 @@ def removeLocation():
         del session["place_id"][place_id_index]
         del session["location"][place_id_index]
         for place in session["location_name"]:
-            print("in removeLocation, places left is", place)
+            print("in removeLocation, places left are", place)
     return redirect(url_for("home"))
 
 def record_inputs_changed():
