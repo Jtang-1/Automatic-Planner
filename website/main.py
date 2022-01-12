@@ -39,6 +39,7 @@ def home():
         session["place_id"] = []
         session["location"] = []
         session["place_visiting_name"] = None
+        session["home"] = None
     else:
         for location in session["location"]:
             locations.append(jsonpickle.decode(location))
@@ -77,6 +78,22 @@ def receiveHome():
         process_place(modify_graph.create_home(place_details))
     return redirect(url_for("home"))
 
+
+@app.route("/loadHomeName", methods=["POST"])
+def loadHomeName():
+    home_name = jsonpickle.decode(session["home"]).name
+    return jsonify(home_name=home_name)
+
+
+@app.route("/removeHome", methods=["POST"])
+def removeHome():
+    if request.method == "POST":
+        print("in session home is", session["home"])
+        if session["home"]:
+            home_place_id = jsonpickle.decode(session["home"]).place_id
+            remove_place(home_place_id)
+            session["home"] = None
+    return redirect(url_for("home"))
 
 @app.route("/receiveStartDate", methods=["POST"])
 def receiveStartDate():
@@ -219,15 +236,7 @@ def removeLocation():
     if request.method == "POST":
         place_id = request.get_json(force=True)["place_ID"]
         print("location place_id is", place_id)
-        place_id_index = session["place_id"].index(place_id)
-        print("place id index is", place_id_index)
-        print("location  name is", session["location_name"][place_id_index])
-        remove_place(session["place_id"][place_id_index])
-        del session["location_name"][place_id_index]
-        del session["place_id"][place_id_index]
-        del session["location"][place_id_index]
-        for place in session["location_name"]:
-            print("in removeLocation, places left are", place)
+        remove_place(place_id)
     return redirect(url_for("home"))
 
 def record_inputs_changed():
@@ -240,9 +249,23 @@ def process_place(new_place: Place):
         session["place_id"].append(new_place.place_id)
         session["location_name"].append(new_place.name)
         session["location"].append(jsonpickle.encode(new_place))
+        if new_place.place_type == "home":
+            session["home"] = jsonpickle.encode(new_place)
 
 
 def remove_place(place_id: str):
+    place_id_index = session["place_id"].index(place_id)
+    print("place id index is", place_id_index)
+    print("location  name is", session["location_name"][place_id_index])
+    remove_place_from_graph(session["place_id"][place_id_index])
+    del session["location_name"][place_id_index]
+    del session["place_id"][place_id_index]
+    del session["location"][place_id_index]
+    for place in session["location_name"]:
+        print("in removeLocation, places left are", place)
+
+
+def remove_place_from_graph(place_id: str):
     graph = modify_graph.get_graph()
     for place in graph.vertices:
         print("place is", place.name)
@@ -379,6 +402,6 @@ if __name__ == "__main__":
         for location in trip_itinerary_test.nonvisted_locations:
             print("unvisited location is", location.name)
         if test_LA:
-            remove_place(Southcoast_details["place_id"])
+            remove_place_from_graph(Southcoast_details["place_id"])
 
     app.run(debug=True)

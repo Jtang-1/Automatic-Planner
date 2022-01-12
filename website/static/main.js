@@ -46,10 +46,6 @@ function hideVisitingAreaInput()
         document.getElementById("visiting_area_form").style.display="None";
         document.getElementById("visiting_area_display").style.display="block";
         }, 700);
-
-//        NEED TO FIGURE OUT HOW TO RELOAD VISITING AREA GEOMETRY DATA TO INIT MAP WITHOUT RELOADING PAGE
-//        USE AJAX
-
 }
 
 function showVisitingAreaInput()
@@ -60,26 +56,51 @@ function showVisitingAreaInput()
 
 }
 
+function hideHomeInput()
+{
+    localStorage.setItem('home_exists', 'True');
+    home_name = localStorage.getItem('home_name')
+    setTimeout(function(){
+        document.getElementById("home_form").style.display="None";
+        document.getElementById("home_value_display").style.display="block";
+        document.getElementById("home_name").textContent=home_name;
+        }, 700);
+}
+
+function showHomeInput()
+{
+    localStorage.removeItem('home_exists');
+    document.getElementById("home_form").style.display="block";
+    document.getElementById("home_value_display").style.display="None";
+
+}
+
+//if visiting area exists
 if (localStorage.getItem('visiting_area_exists')){
            document.getElementById("visiting_area_form").style.display="None";
            document.getElementById("visiting_area_display").style.display="block";
-//           lat = localStorage.getItem('visiting_area_lat');
-//           lng = localStorage.getItem('visiting_area_lng');
-//           console.log("In hide visiting area if already selected lat and lng are", lat, "and", lng);
-//           initDestHomeAutocomplete(lat,lng);
-    }
+}
 
-//If start date exists
+//if start date exists
 if(localStorage.getItem('start_date')){
     date = localStorage.getItem('start_date')
     document.getElementById("start_date_input").value = reformatIsoDate(date);
 }
 
-//If end date exists
+//if end date exists
 if(localStorage.getItem('end_date')){
     date = localStorage.getItem('end_date')
     document.getElementById("end_date_input").value = reformatIsoDate(date);
 }
+
+//if home exists
+if (localStorage.getItem('home_exists')){
+    home_name = localStorage.getItem('home_name')
+    document.getElementById("home_name").textContent=home_name;
+    document.getElementById("home_form").style.display="None";
+    document.getElementById("home_value_display").style.display="block";
+}
+
 
 function reformatIsoDate(date){
     date = date.split('-')

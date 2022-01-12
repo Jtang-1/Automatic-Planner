@@ -87,7 +87,20 @@
                         return;
                     }
                     sendPlaceInfo(place,"/receiveHome");
+                    setTimeout(function(){
+                        $.ajax({
+                            url:"/loadHomeName",
+                            type: "POST",
+                            dataType: "json",
+                            success: function(data){
+                                home_name = data["home_name"]
+                                localStorage.setItem('home_name', home_name);
+                                document.getElementById("home_name").textContent=home_name;
+                                }
+                            });
+                        }, 500);
                     document.getElementById("home_autocomplete").value = "";
+                    hideHomeInput()
                     form.setAttribute('eventWithSubmit','false');
                     window.globalHomePlaceChangedCalledTimes = 0;
                 }
@@ -115,7 +128,6 @@
                         window.globalVisitingAreaChangedCalledIterator += 1;
                         return;
                     }
-                    hideVisitingAreaInput();
                     sendPlaceInfo(place,"/receiveVisitingArea");
                     document.getElementById("visiting_area_input").value = "";
                     setTimeout(function(){
@@ -136,6 +148,7 @@
 <!--                    setTimeout(function(){-->
 <!--                        window.location.reload();-->
 <!--                        }, 1000);-->
+                    hideVisitingAreaInput();
                     form.setAttribute('eventWithSubmit','false');
                     window.globalVisitingAreaChangedCalledTimes = 0;
                 }
@@ -285,10 +298,10 @@
                 <button> Submit </button></div>
         </form>
         <div id="visiting_area_display" class="hidden">
-            <p>
+            <span>
                 Traveling to {{visit_place}}
                 <button onclick="showVisitingAreaInput()">Change Place</button>
-            </p>
+            </span>
         </div>
     </div>
 
@@ -302,14 +315,24 @@
         </div>
     </form>
 
+    <div id="home_div">
+        <form id="home_form" action="/" method="POST">
+                <label for="home_autocomplete">Where are you staying?</label>
+                <input type="text" id="home_autocomplete" style="width:300px">
+                <button> Add </button>
+        </form>
+
+        <div id="home_value_display" class="hidden">
+            <span>
+                Staying at <span id="home_name"> </span>
+                <form action ="/removeHome" method = "POST" id="changeHomeForm">
+                    <input type="submit" id="changeHomeButton" onclick="showHomeInput()" value = "Change Home">
+                </form>
+            </span>
+        </div>
+    </div>
+
     <div>
-    <form id="home_form" action="/" method="POST">
-            <label for="home_autocomplete">Where are you staying?</label>
-            <input type="text" id="home_autocomplete" style="width:300px">
-
-            <button> Add </button>
-    </form>
-
         <form id="home_time_form" action="/" method="POST">
             <label>Time to start your day:</label>
             <input type="time" id="leave_time" style="width:100px" onchange="onLeaveTimeChanged()">
@@ -336,16 +359,17 @@
     <ol type="1" id="locations">
         <option id="details"></option>
         {% for location_name,place_id,location  in locations %}
-            <li class="location" id="{{loop.index0}}">
-                <div>
-                <option class="locationName" id="{{place_id}}">{{location_name}}</option>
-                {% if location.visit_minutes != None %}
-                    {{location.visit_minutes/60}} hours
-                {% endif %}
-                </div>
-
-                <button>remove</button>
-            </li>
+            {% if location.place_type != "home" %}
+                <li class="location" id="{{loop.index0}}">
+                    <div>
+                    <option class="locationName" id="{{place_id}}">{{location_name}}</option>
+                    {% if location.visit_minutes != None %}
+                        {{location.visit_minutes/60}} hours
+                    {% endif %}
+                    </div>
+                    <button>remove</button>
+                </li>
+            {% endif %}
         {% endfor %}
     </ol>
     </div>
