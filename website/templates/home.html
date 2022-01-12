@@ -11,6 +11,12 @@
         function initMap(){
             visiting_area_autocomplete = create_autocomplete_visiting_area_obj("visiting_area_input");
             visiting_area_autocomplete.addListener('place_changed', onVisitingAreaChanged);
+            if (localStorage.getItem('visiting_area_exists')){
+              lat = localStorage.getItem('visiting_area_lat');
+              lng = localStorage.getItem('visiting_area_lng');
+              console.log("In hide visiting area if already selected lat and lng are", lat, "and", lng);
+              initDestHomeAutocomplete(lat,lng);
+    }
 <!--            console.log("Test",{{visit_place_lat}},{{visit_place_lng}});-->
 <!--            destination_autocomplete = createAutocompleteObject("destination_autocomplete",{{visit_place_lat}},{{visit_place_lng}});-->
 <!--            destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);-->
@@ -23,7 +29,7 @@
         function initDestHomeAutocomplete(visit_place_lat, visit_place_lng){
             destination_autocomplete = createAutocompleteObject("destination_autocomplete",visit_place_lat,visit_place_lng);
             destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);
-            console.log("in initDestHomeAutocomplete",visit_place_lat,visit_place_lng);
+            console.log("in initDestHomeAutocomplete", visit_place_lng);
             home_autocomplete = createAutocompleteObject("home_autocomplete",visit_place_lat,visit_place_lng);
             home_autocomplete.addListener('place_changed', onHomePlaceChanged);
         }
@@ -121,6 +127,8 @@
                                 lat = data["lat"]
                                 lng = data["lng"]
                                 console.log("The data is,", lat, "and", lng);
+                                localStorage.setItem('visiting_area_lat', lat);
+                                localStorage.setItem('visiting_area_lng', lng);
                                 initDestHomeAutocomplete(lat,lng)
                                 }
                             });
@@ -177,7 +185,7 @@
             autocomplete= new google.maps.places.Autocomplete(
                 document.getElementById(id),
                 {   sessionToken: sessionToken,
-                    types: ["establishment"],
+<!--                    types: ["establishment"],-->
                     componentRestrictions: {"country": ["us"]},
                     fields: ["place_id", "name", "formatted_address", "opening_hours", "types", "business_status"]
                 });
@@ -198,7 +206,7 @@
         }
 
         function onStartDateChanged(){
-            var date = document.getElementById('start_date').value;
+            var date = document.getElementById('start_date_input').value;
             console.log("start_date is", date)
             let start_date = JSON.stringify({
                     "start_date":date
@@ -212,14 +220,16 @@
                             success: function(data){
                                 iso_start_date_str = data["iso_start_date_str"]
                                 localStorage.setItem('start_date', iso_start_date_str);
-                                document.getElementById("start_date").value = iso_start_date_str;
+                                console.log("reformatted date is", reformatIsoDate(iso_start_date_str))
+                                document.getElementById("start_date_input").type ='text';
+                                document.getElementById("start_date_input").value = reformatIsoDate(iso_start_date_str);
                                 }
                             });
                         }, 200);
         }
 
         function onEndDateChanged(){
-            var date = document.getElementById('end_date').value;
+            var date = document.getElementById('end_date_input').value;
             console.log("end_date is", date)
             let end_date = JSON.stringify({
                     "end_date":date
@@ -233,8 +243,8 @@
                             success: function(data){
                                 iso_end_date_str = data["iso_end_date_str"]
                                 localStorage.setItem('end_date', iso_end_date_str);
-                                document.getElementById("end_date").value = iso_end_date_str;
-                                }
+                                document.getElementById("end_date_input").type ='text';
+                                document.getElementById("end_date_input").value = reformatIsoDate(iso_end_date_str);                                }
                             });
                         }, 400);
         }
@@ -256,7 +266,6 @@
                     });
             sendInfo(return_time, "/receiveDayEndTime")
         }
-
     </script>
     <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBncbwIJ2Ug0E7oPoYubcplGGlD-dEuo98&libraries=places&callback=initMap"
@@ -285,9 +294,11 @@
 
     <form action="/" method="POST">
         <div> </div><label>Dates</label>
-        <input type="text" placeholder="MM/DD/YYYY" onfocus="(this.type='date')" onblur="(this.type='text')" id="start_date"  style="width:150px" onchange="onStartDateChanged()">
+        <span id="start_date_value"> </span>
+        <input type="text" placeholder="MM/DD/YYYY" onfocus="(this.type='date')" onblur="(this.type='text')" id="start_date_input"  style="width:150px" onchange="onStartDateChanged()">
             through
-        <input type="text" placeholder="MM/DD/YYYY" onfocus="(this.type='date')" onblur="(this.type='text')" id="end_date"  style="width:150px" onchange="onEndDateChanged()">
+        <span id="end_date_value"> </span>
+        <input type="text" placeholder="MM/DD/YYYY" onfocus="(this.type='date')" onblur="(this.type='text')" id="end_date_input"  style="width:150px" onchange="onEndDateChanged()">
         </div>
     </form>
 
