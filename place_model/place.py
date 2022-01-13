@@ -45,8 +45,8 @@ def is_always_open(periods) -> bool:
     return False
 
 class Place:
-    def __init__(self, place_id: str, name: str,
-                 place_type: str = None, opening_hours: dict = None, business_status: str = None):
+    def __init__(self, place_id: str, name: str, lng: float, lat: float, place_type: str = None,
+                 opening_hours: dict = None, business_status: str = None):
         self.place_id = place_id
         self.name = name
         self.place_type = place_type
@@ -54,6 +54,8 @@ class Place:
         self.business_status = business_status
         self.open_times = create_open_times(opening_hours)
         self.close_times = create_close_times(opening_hours)
+        self.lng = lng
+        self.lat = lat
 
     def is_closed_on(self, weekday: int):
         if self.open_times[weekday] is None:

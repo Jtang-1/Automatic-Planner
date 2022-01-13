@@ -16,7 +16,9 @@ def get_graph():
 def create_home(place_details):
     opening_hours = key_value("opening_hours", place_details)
     business_status = key_value("business_status", place_details)
-    return Home(place_details["place_id"], place_details["name"],
+    lng = key_value("geometry", place_details)["location"]["lng"]
+    lat = key_value("geometry", place_details)["location"]["lat"]
+    return Home(place_details["place_id"], place_details["name"],lng, lat,
                 opening_hours, business_status)
 
 
@@ -24,9 +26,11 @@ def create_attraction(place_details, visit_hours):
     place_type = key_value("type", place_details)
     opening_hours = key_value("opening_hours", place_details)
     business_status = key_value("business_status", place_details)
+    lng = key_value("geometry", place_details)["location"]["lng"]
+    lat = key_value("geometry", place_details)["location"]["lat"]
     visit_minutes = visit_hours * 60
     print("This place is created:", place_details["name"])
-    return Attraction(place_details["place_id"], place_details["name"], place_type,
+    return Attraction(place_details["place_id"], place_details["name"],lng, lat, place_type,
                       opening_hours, business_status, visit_minutes)
 
 

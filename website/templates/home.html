@@ -8,22 +8,16 @@
     <meta charset="UTF-8">
     <script>
         let autocomplete;
+        var googleMapDisplayObject
         function initMap(){
             visiting_area_autocomplete = create_autocomplete_visiting_area_obj("visiting_area_input");
             visiting_area_autocomplete.addListener('place_changed', onVisitingAreaChanged);
             if (localStorage.getItem('visiting_area_exists')){
-              lat = localStorage.getItem('visiting_area_lat');
-              lng = localStorage.getItem('visiting_area_lng');
-              console.log("In hide visiting area if already selected lat and lng are", lat, "and", lng);
-              initDestHomeAutocomplete(lat,lng);
-    }
-<!--            console.log("Test",{{visit_place_lat}},{{visit_place_lng}});-->
-<!--            destination_autocomplete = createAutocompleteObject("destination_autocomplete",{{visit_place_lat}},{{visit_place_lng}});-->
-<!--            destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);-->
-<!--            console.log("Test",{{visit_place_lat}},{{visit_place_lng}});-->
-<!--            home_autocomplete = createAutocompleteObject("home_autocomplete",{{visit_place_lat}},{{visit_place_lng}});-->
-<!--            home_autocomplete.addListener('place_changed', onHomePlaceChanged);-->
-
+                lat = localStorage.getItem('visiting_area_lat');
+                lng = localStorage.getItem('visiting_area_lng');
+                initDestHomeAutocomplete(lat,lng);
+                createGoogleMap(lat,lng);
+            }
         }
 
         function initDestHomeAutocomplete(visit_place_lat, visit_place_lng){
@@ -32,6 +26,18 @@
             console.log("in initDestHomeAutocomplete", visit_place_lng);
             home_autocomplete = createAutocompleteObject("home_autocomplete",visit_place_lat,visit_place_lng);
             home_autocomplete.addListener('place_changed', onHomePlaceChanged);
+        }
+
+        function createGoogleMap(lat,lng){
+            const visiting_area_center = {lat: Number(lat), lng: Number(lng) };
+                 googleMapDisplayObject = new google.maps.Map(document.getElementById("map"), {
+                  zoom: 13,
+                  center: visiting_area_center,
+                });
+                const marker = new google.maps.Marker({
+                  position: visiting_area_center,
+                  map: googleMapDisplayObject,
+                });
         }
         window.globalDestinationPlaceChangedCalledTimes = 0;
         function onDestinationPlaceChanged(){
@@ -89,13 +95,18 @@
                     sendPlaceInfo(place,"/receiveHome");
                     setTimeout(function(){
                         $.ajax({
-                            url:"/loadHomeName",
+                            url:"/loadHomeData",
                             type: "POST",
                             dataType: "json",
                             success: function(data){
-                                home_name = data["home_name"]
+                                home_name = data["home_name"];
+                                home_lat = data["home_lat_lng"][0];
+                                home_lng = data["home_lat_lng"][1];
+                                console.log("type of lat is", typeof home_lat)
+                                console.log("the lat and lng of", home_name, "is", home_lat, home_lng);
                                 localStorage.setItem('home_name', home_name);
                                 document.getElementById("home_name").textContent=home_name;
+                                addMarker({coordinates:{lat: home_lat, lng: home_lng}});
                                 }
                             });
                         }, 500);
@@ -141,7 +152,8 @@
                                 console.log("The data is,", lat, "and", lng);
                                 localStorage.setItem('visiting_area_lat', lat);
                                 localStorage.setItem('visiting_area_lng', lng);
-                                initDestHomeAutocomplete(lat,lng)
+                                initDestHomeAutocomplete(lat,lng);
+                                createGoogleMap(lat,lng);
                                 }
                             });
                         }, 500);
@@ -200,7 +212,7 @@
                 {   sessionToken: sessionToken,
 <!--                    types: ["establishment"],-->
                     componentRestrictions: {"country": ["us"]},
-                    fields: ["place_id", "name", "formatted_address", "opening_hours", "types", "business_status"]
+                    fields: ["place_id", "name", "formatted_address", "opening_hours", "types", "business_status", "geometry"]
                 });
             autocomplete.setBounds(circle.getBounds());
             return autocomplete;
@@ -277,7 +289,14 @@
             let return_time = JSON.stringify({
                     "return_time":time
                     });
-            sendInfo(return_time, "/receiveDayEndTime")
+            sendInfo(return_time, "/receiveDayEndTime");
+        }
+
+        function addMarker(props){
+                var marker = new google.maps.Marker({
+                    position: props.coordinates,
+                    map:googleMapDisplayObject
+                });
         }
     </script>
     <script
@@ -373,6 +392,7 @@
         {% endfor %}
     </ol>
     </div>
-<script src="{{url_for('static', filename='main.js')}}"> defer></script>
+    <div id="map"></div>
+    <script src="{{url_for('static', filename='main.js')}}"> defer></script>
 </body>
 </html>

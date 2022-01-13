@@ -59,7 +59,7 @@ def receiveDestination():
         place_details = request.get_json(force=True)
         print("place_details is", place_details)
         process_place(modify_graph.create_attraction(place_details, session["visit_hours"]))
-    return redirect(url_for("home"))
+    return "test"
 
 @app.route("/receiveVisitHours", methods=["POST"])
 def receiveVisitHours():
@@ -79,10 +79,13 @@ def receiveHome():
     return redirect(url_for("home"))
 
 
-@app.route("/loadHomeName", methods=["POST"])
-def loadHomeName():
-    home_name = jsonpickle.decode(session["home"]).name
-    return jsonify(home_name=home_name)
+@app.route("/loadHomeData", methods=["POST"])
+def loadHomeData():
+    session_home = jsonpickle.decode(session["home"])
+    home_name = session_home.name
+    home_lat_lng = [session_home.lat, session_home.lng]
+    print(home_lat_lng, "this is home_lat_lng")
+    return jsonify(home_name=home_name, home_lat_lng=home_lat_lng)
 
 
 @app.route("/removeHome", methods=["POST"])

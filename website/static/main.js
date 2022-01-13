@@ -109,3 +109,7 @@ function reformatIsoDate(date){
     day = date[2]
     return [month, day, year].join('-')
 }
+
+$("#changeHomeForm").submit(function(e){
+    e.preventDefault();
+});
