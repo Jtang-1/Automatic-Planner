@@ -14,7 +14,14 @@ addGlobalEventListener('click', "button", e => {
     let placeIdJSON = JSON.stringify({
         "place_ID":place_id
         });
-    sendInfo(placeIdJSON, "/removeLocation")
+    function removeMarker(jsonResponse){
+        console.log('remove marker json response is', jsonResponse);
+        console.log('index to remove is', jsonResponse["index"]);
+        index = jsonResponse["index"];
+        markers[index].setMap(null);
+        markers.splice(index, 1);
+    }
+    var jsonResponse = sendInfo(placeIdJSON, "/removeLocation", removeMarker)
     const button = e.target
     const location = button.parentNode
     const locations = location.parentNode
@@ -24,14 +31,52 @@ addGlobalEventListener('click', "button", e => {
     }
 })
 
+function sendPlaceInfo(place,url,callback){
+        let location = JSON.stringify({
+            "name":place.name,
+            "place_id":place.place_id,
+            "formatted_address":place.formatted_address,
+            "type": place.types,
+            "opening_hours":place.opening_hours,
+            "business_status":place.business_status,
+            "geometry":place.geometry
+            });
+        const request = new XMLHttpRequest();
+        request.open("POST", url, true);
+        console.log("in sendPlaceInfo");
+        request.onreadystatechange = () => {
+            if (request.readyState==4){
+                console.log("SendPlaceInfo Loaded", request.response);
+                if (typeof callback == 'function'){
+                    callback();
+                    console.log("send Place info callback called");
+                }
+                $("#locations_block").load(" #locations_block > *");
+            }
+        };
+        request.send(location);
 
-function sendInfo(info, url){
+}
+
+function sendInfo(info, url, callback){
     const request = new XMLHttpRequest()
     request.open("POST", url, true)
+    request.onreadystatechange = () => {
+        if(request.readyState==4){
+            var jsonResponse = JSON.parse(request.response)
+            console.log("SendInfo Loaded", jsonResponse);
+            if (typeof callback == 'function'){
+                callback(jsonResponse);
+                console.log("send info callback called")
+            }
+            $("#locations_block").load(" #locations_block > *");
+        }
+    };
     console.log("time in sendInfo is", info)
     console.log("type in send info is", typeof info)
     request.send(info)
 }
+
 function addGlobalEventListener(type, selector, callback){
     document.addEventListener(type, e=> {
         if (e.target.matches(selector)) callback(e)

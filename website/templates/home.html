@@ -8,7 +8,8 @@
     <meta charset="UTF-8">
     <script>
         let autocomplete;
-        var googleMapDisplayObject
+        let googleMapDisplayObject;
+        let markers = [];
         function initMap(){
             visiting_area_autocomplete = create_autocomplete_visiting_area_obj("visiting_area_input");
             visiting_area_autocomplete.addListener('place_changed', onVisitingAreaChanged);
@@ -31,7 +32,7 @@
         function createGoogleMap(lat,lng){
             const visiting_area_center = {lat: Number(lat), lng: Number(lng) };
                  googleMapDisplayObject = new google.maps.Map(document.getElementById("map"), {
-                  zoom: 13,
+                  zoom: 11,
                   center: visiting_area_center,
                 });
                 const marker = new google.maps.Marker({
@@ -58,10 +59,29 @@
                     }
                     var hours = document.getElementById('visit_hours').value;
                     console.log("hours value is", hours)
-                    sendInfo(hours,"/receiveVisitHours")
-                    setTimeout(function(){
-                        sendPlaceInfo(place,"/receiveDestination");
-                        }, 500);
+                    function loadDestination() {
+                        $.ajax({
+                            url:"/loadNewDestinationMapData",
+                            type: "GET",
+                            dataType: "json",
+                            success: function(data){
+                                destination_name = data["new_destination_name"];
+                                destination_lat = data["new_destination_lat_lng"][0];
+                                destination_lng = data["new_destination_lat_lng"][1];
+                                console.log("the lat and lng of", destination_name, "is", destination_lat, destination_lng);
+                                addMarker({coordinates:{lat: destination_lat, lng: destination_lng},
+                                            content: destination_name});
+                            }
+                        });
+                    }
+                    sendInfo(hours,"/receiveVisitHours", function(){
+                        sendPlaceInfo(place,"/receiveDestination", loadDestination);
+                    });
+<!--                    sendInfo(hours,"/receiveVisitHours")-->
+<!--                    setTimeout(function(){-->
+<!--                        sendPlaceInfo(place,"/receiveDestination", loadDestination);-->
+<!--                    }, 1000);-->
+
                     document.getElementById("destination_autocomplete").value = "";
                     console.log("form sent");
                     form.setAttribute('eventWithSubmit','false');
@@ -92,11 +112,10 @@
                         window.globalHomePlaceChangedIterator += 1;
                         return;
                     }
-                    sendPlaceInfo(place,"/receiveHome");
-                    setTimeout(function(){
+                    function loadHome() {
                         $.ajax({
-                            url:"/loadHomeData",
-                            type: "POST",
+                            url:"/loadHomeMapData",
+                            type: "GET",
                             dataType: "json",
                             success: function(data){
                                 home_name = data["home_name"];
@@ -105,13 +124,15 @@
                                 console.log("type of lat is", typeof home_lat)
                                 console.log("the lat and lng of", home_name, "is", home_lat, home_lng);
                                 localStorage.setItem('home_name', home_name);
+                                document.getElementById("home_autocomplete").value = "";
+                                hideHomeInput()
                                 document.getElementById("home_name").textContent=home_name;
-                                addMarker({coordinates:{lat: home_lat, lng: home_lng}});
+                                addMarker({coordinates:{lat: home_lat, lng: home_lng},
+                                           content:home_name});
                                 }
                             });
-                        }, 500);
-                    document.getElementById("home_autocomplete").value = "";
-                    hideHomeInput()
+                        }
+                    sendPlaceInfo(place,"/receiveHome", loadHome);
                     form.setAttribute('eventWithSubmit','false');
                     window.globalHomePlaceChangedCalledTimes = 0;
                 }
@@ -139,12 +160,10 @@
                         window.globalVisitingAreaChangedCalledIterator += 1;
                         return;
                     }
-                    sendPlaceInfo(place,"/receiveVisitingArea");
-                    document.getElementById("visiting_area_input").value = "";
-                    setTimeout(function(){
+                    function loadVisitingArea() {
                         $.ajax({
                             url:"/loadVisitingArea",
-                            type: "POST",
+                            type: "GET",
                             dataType: "json",
                             success: function(data){
                                 lat = data["lat"]
@@ -153,14 +172,13 @@
                                 localStorage.setItem('visiting_area_lat', lat);
                                 localStorage.setItem('visiting_area_lng', lng);
                                 initDestHomeAutocomplete(lat,lng);
+                                document.getElementById("visiting_area_input").value = "";
+                                hideVisitingAreaInput();
                                 createGoogleMap(lat,lng);
                                 }
                             });
-                        }, 500);
-<!--                    setTimeout(function(){-->
-<!--                        window.location.reload();-->
-<!--                        }, 1000);-->
-                    hideVisitingAreaInput();
+                        }
+                    sendPlaceInfo(place,"/receiveVisitingArea",loadVisitingArea);
                     form.setAttribute('eventWithSubmit','false');
                     window.globalVisitingAreaChangedCalledTimes = 0;
                 }
@@ -174,31 +192,6 @@
             }
         }
 
-        function sendPlaceInfo(place,url){
-<!--            document.getElementById("details").innerHTML = place.name;-->
-                let location = JSON.stringify({
-                    "name":place.name,
-                    "place_id":place.place_id,
-                    "formatted_address":place.formatted_address,
-                    "type": place.types,
-                    "opening_hours":place.opening_hours,
-                    "business_status":place.business_status,
-                    "geometry":place.geometry
-                    });
-                const request = new XMLHttpRequest();
-                request.open("POST", url, true);
-                request.send(location);
-                setTimeout(function(){
-                    $("#locations_block").load(" #locations_block > *");
-                }, 1200);
-
-        }
-
-        function sendInfo(info, url){
-            const request = new XMLHttpRequest();
-            request.open("POST", url, true);
-            request.send(info);
-        }
 
         function createAutocompleteObject(id,lat,lng){
             var sessionToken = new google.maps.places.AutocompleteSessionToken();
@@ -236,21 +229,22 @@
             let start_date = JSON.stringify({
                     "start_date":date
                     });
-            sendInfo(start_date, "/receiveStartDate")
-            setTimeout(function(){
-                        $.ajax({
-                            url:"/loadStartDate",
-                            type: "POST",
-                            dataType: "json",
-                            success: function(data){
-                                iso_start_date_str = data["iso_start_date_str"]
-                                localStorage.setItem('start_date', iso_start_date_str);
-                                console.log("reformatted date is", reformatIsoDate(iso_start_date_str))
-                                document.getElementById("start_date_input").type ='text';
-                                document.getElementById("start_date_input").value = reformatIsoDate(iso_start_date_str);
-                                }
-                            });
-                        }, 200);
+            function loadStartDate(){
+                $.ajax({
+                    url:"/loadStartDate",
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data){
+                        iso_start_date_str = data["iso_start_date_str"]
+                        localStorage.setItem('start_date', iso_start_date_str);
+                        console.log("reformatted date is", reformatIsoDate(iso_start_date_str))
+                        document.getElementById("start_date_input").type ='text';
+                        document.getElementById("start_date_input").value = reformatIsoDate(iso_start_date_str);
+                    }
+                });
+             }
+            sendInfo(start_date, "/receiveStartDate", loadStartDate)
+
         }
 
         function onEndDateChanged(){
@@ -259,19 +253,20 @@
             let end_date = JSON.stringify({
                     "end_date":date
                     });
-            sendInfo(end_date, "/receiveEndDate")
-            setTimeout(function(){
-                        $.ajax({
-                            url:"/loadEndDate",
-                            type: "POST",
-                            dataType: "json",
-                            success: function(data){
-                                iso_end_date_str = data["iso_end_date_str"]
-                                localStorage.setItem('end_date', iso_end_date_str);
-                                document.getElementById("end_date_input").type ='text';
-                                document.getElementById("end_date_input").value = reformatIsoDate(iso_end_date_str);                                }
-                            });
-                        }, 400);
+            function loadEndDate(){
+                $.ajax({
+                    url:"/loadEndDate",
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data){
+                        iso_end_date_str = data["iso_end_date_str"]
+                        localStorage.setItem('end_date', iso_end_date_str);
+                        document.getElementById("end_date_input").type ='text';
+                        document.getElementById("end_date_input").value = reformatIsoDate(iso_end_date_str);                                }
+                    });
+                }
+            sendInfo(end_date, "/receiveEndDate", loadEndDate)
+
         }
 
         function onLeaveTimeChanged(){
@@ -293,10 +288,24 @@
         }
 
         function addMarker(props){
-                var marker = new google.maps.Marker({
+                const marker = new google.maps.Marker({
                     position: props.coordinates,
                     map:googleMapDisplayObject
                 });
+
+                if (props.iconImage){
+                    marker.setIcon(props.iconImage);
+                }
+                if (props.content){
+                    var infoWindow = new google.maps.InfoWindow({
+                        content:props.content
+                    });
+                    marker.addListener('click', function(){
+                        infoWindow.open(googleMapDisplayObject, marker);
+                    });
+                markers.push(marker);
+                console.log("Added to marker")
+               }
         }
     </script>
     <script

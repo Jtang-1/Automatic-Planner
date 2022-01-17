@@ -7,6 +7,6 @@ class ScheduledAttraction(Attraction):
         self.base_place = attraction
         self.arrive_time = arrive_time
         self.leave_time = leave_time
-        super().__init__(attraction.place_id, attraction.name, attraction.place_type, attraction.opening_hours,
-                         attraction.business_status, attraction.visit_minutes)
-
+        super().__init__(place_id=attraction.place_id, name=attraction.name, lng=attraction.lng,
+                         lat=attraction.lat, place_type=attraction.place_type, opening_hours=attraction.opening_hours,
+                         business_status=attraction.business_status, visit_minutes=attraction.visit_minutes)
