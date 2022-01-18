@@ -262,15 +262,17 @@
                         iso_end_date_str = data["iso_end_date_str"]
                         localStorage.setItem('end_date', iso_end_date_str);
                         document.getElementById("end_date_input").type ='text';
-                        document.getElementById("end_date_input").value = reformatIsoDate(iso_end_date_str);                                }
-                    });
-                }
+                        document.getElementById("end_date_input").value = reformatIsoDate(iso_end_date_str);
+                    }
+                });
+            }
             sendInfo(end_date, "/receiveEndDate", loadEndDate)
 
         }
 
         function onLeaveTimeChanged(){
-            var time = document.getElementById('leave_time').value;
+            var time = document.getElementById('leave_time_input').value;
+            localStorage.setItem("leave_time",time);
             console.log("leave time is", time)
             let leave_time = JSON.stringify({
                     "leave_time":time
@@ -279,7 +281,8 @@
         }
 
         function onReturnTimeChanged(){
-            var time = document.getElementById('return_time').value;
+            var time = document.getElementById('return_time_input').value;
+            localStorage.setItem("return_time",time);
             console.log("return time is", time)
             let return_time = JSON.stringify({
                     "return_time":time
@@ -353,9 +356,7 @@
         <div id="home_value_display" class="hidden">
             <span>
                 Staying at <span id="home_name"> </span>
-                <form action ="/removeHome" method = "POST" id="changeHomeForm">
-                    <input type="submit" id="changeHomeButton" onclick="showHomeInput()" value = "Change Home">
-                </form>
+                <button type="submit" id="changeHomeButton" onclick="showHomeInput()">Change Home</button>
             </span>
         </div>
     </div>
@@ -363,9 +364,9 @@
     <div>
         <form id="home_time_form" action="/" method="POST">
             <label>Time to start your day:</label>
-            <input type="time" id="leave_time" style="width:100px" onchange="onLeaveTimeChanged()">
+            <input type="time" id="leave_time_input" style="width:100px" onchange="onLeaveTimeChanged()">
             <label>Time to end your day:</label>
-            <input type="time" id="return_time" style="width:100px" onchange="onReturnTimeChanged()">
+            <input type="time" id="return_time_input" style="width:100px" onchange="onReturnTimeChanged()">
 
         </form>
     </div>

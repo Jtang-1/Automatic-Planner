@@ -30,7 +30,6 @@ server_session = Session(app)
 
 @app.before_request
 def make_session_permanent():
-    print('in bofore requst, secret key is', app.secret_key)
     session.permanent = True
 
 
@@ -124,9 +123,10 @@ def removeHome():
         print("in session home is", session["home"])
         if session["home"]:
             home_place_id = jsonpickle.decode(session["home"]).place_id
+            home_place_id_index = session["place_id"].index(home_place_id)
             remove_place(home_place_id)
             session["home"] = None
-    return jsonify({'result': 'Success!'})
+    return jsonify({'result': 'Success!', 'index': home_place_id_index})
 
 @app.route("/receiveStartDate", methods=["POST"])
 def receiveStartDate():

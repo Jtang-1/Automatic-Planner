@@ -14,13 +14,6 @@ addGlobalEventListener('click', "button", e => {
     let placeIdJSON = JSON.stringify({
         "place_ID":place_id
         });
-    function removeMarker(jsonResponse){
-        console.log('remove marker json response is', jsonResponse);
-        console.log('index to remove is', jsonResponse["index"]);
-        index = jsonResponse["index"];
-        markers[index].setMap(null);
-        markers.splice(index, 1);
-    }
     var jsonResponse = sendInfo(placeIdJSON, "/removeLocation", removeMarker)
     const button = e.target
     const location = button.parentNode
@@ -30,6 +23,14 @@ addGlobalEventListener('click', "button", e => {
         }
     }
 })
+
+function removeMarker(jsonResponse){
+    console.log('remove marker json response is', jsonResponse);
+    console.log('index to remove is', jsonResponse["index"]);
+    index = jsonResponse["index"];
+    markers[index].setMap(null);
+    markers.splice(index, 1);
+}
 
 function sendPlaceInfo(place,url,callback){
         let location = JSON.stringify({
@@ -117,6 +118,10 @@ function showHomeInput()
     localStorage.removeItem('home_exists');
     document.getElementById("home_form").style.display="block";
     document.getElementById("home_value_display").style.display="None";
+    let placeIdJSON = JSON.stringify({
+        "place_ID":""
+    });
+    var jsonResponse = sendInfo(placeIdJSON, "/removeHome", removeMarker)
 
 }
 
@@ -146,6 +151,17 @@ if (localStorage.getItem('home_exists')){
     document.getElementById("home_value_display").style.display="block";
 }
 
+//if leave time exists
+if (localStorage.getItem('leave_time')){
+    leave_time = localStorage.getItem("leave_time");
+    document.getElementById("leave_time_input").value = leave_time;
+}
+
+//if return time exists
+if (localStorage.getItem('return_time')){
+    return_time = localStorage.getItem("return_time");
+    document.getElementById("return_time_input").value = return_time;
+}
 
 function reformatIsoDate(date){
     date = date.split('-')
@@ -154,6 +170,7 @@ function reformatIsoDate(date){
     day = date[2]
     return [month, day, year].join('-')
 }
+
 
 $("#changeHomeForm").submit(function(e){
     e.preventDefault();
