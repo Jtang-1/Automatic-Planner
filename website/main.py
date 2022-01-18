@@ -49,6 +49,7 @@ def home():
     if "place_visiting_lat_lng" not in session:
         session["place_visiting_lat_lng"] = {"lat": None, "lng": None}
     return render_template("home.html", locations=zip(session["location_name"], session["place_id"], locations),
+                           map_locations=zip(session["location_name"], session["place_id"], locations),
                            visit_place_lat=session["place_visiting_lat_lng"]["lat"],
                            visit_place_lng=session["place_visiting_lat_lng"]["lng"],
                            visit_place=session["place_visiting_name"])
@@ -69,7 +70,6 @@ def receiveDestination():
             session.modified = True
         process_place(new_place)
         print("in receive destination location names in session are", session["location_name"])
-
     return jsonify({'result': 'Success!'})
 
 

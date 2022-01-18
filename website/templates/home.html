@@ -18,6 +18,10 @@
                 lng = localStorage.getItem('visiting_area_lng');
                 initDestHomeAutocomplete(lat,lng);
                 createGoogleMap(lat,lng);
+                {% for location_name,place_id,location in map_locations %}
+                    addMarker({coordinates:{lat: {{location.lat}}, lng: {{location.lng}}},
+                                            content: '{{location_name}}'});
+                {% endfor %}
             }
         }
 
