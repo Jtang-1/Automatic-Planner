@@ -3,7 +3,7 @@ from flask_session import Session
 from website import website_helpers
 from datetime import timedelta
 import secrets
-import time
+import copy
 from place_model.place import Place
 from website import modify_graph
 import shortest_path
@@ -65,8 +65,6 @@ def receiveDestination():
         new_place = modify_graph.create_attraction(place_details, session["visit_hours"])
         if new_place.place_id not in session["place_id"]:
             session["new_destination"] = jsonpickle.encode(new_place)
-            new_destination = jsonpickle.decode(session["new_destination"])
-            print("new place added is", new_destination.name)
             session.modified = True
         process_place(new_place)
         print("in receive destination location names in session are", session["location_name"])
@@ -75,9 +73,6 @@ def receiveDestination():
 
 @app.route("/loadNewDestinationMapData", methods=["GET"])
 def loadNewDestinationMapData():
-    print("in load destination session has location_name key?", "location_name" in session)
-    print("location names in session are", session["location_name"])
-    print("session has new destination key?", "new_destination" in session)
     new_destination = jsonpickle.decode(session["new_destination"])
     print("new desintation from load call is", new_destination.name)
     if isinstance(new_destination, Home):
@@ -126,7 +121,8 @@ def removeHome():
             home_place_id_index = session["place_id"].index(home_place_id)
             remove_place(home_place_id)
             session["home"] = None
-    return jsonify({'result': 'Success!', 'index': home_place_id_index})
+            return jsonify({'result': 'Success!', 'index': home_place_id_index})
+    return jsonify({'result': 'Success!'})
 
 @app.route("/receiveStartDate", methods=["POST"])
 def receiveStartDate():
@@ -270,6 +266,24 @@ def removeLocation():
         print("location place_id is", place_id)
         place_id_index = session["place_id"].index(place_id)
         remove_place(place_id)
+    return jsonify({'result': 'Success!', 'index': place_id_index})
+
+
+@app.route("/removeAllDestinations", methods=["POST"])
+def removeAllDestinations():
+    if request.method == "POST":
+        removeHome();
+        place_ids = copy.deepcopy(session["place_id"])
+        for place_id in place_ids:
+            remove_place(place_id)
+    return jsonify({'result': 'Success!'})
+
+@app.route("/getLocationIndex", methods=["POST"])
+def getLocationIndex():
+    if request.method == "POST":
+        place_id = request.get_json(force=True)["place_ID"]
+        print("getLocationcation place_id is", place_id)
+        place_id_index = session["place_id"].index(place_id)
     return jsonify({'result': 'Success!', 'index': place_id_index})
 
 def record_inputs_changed():

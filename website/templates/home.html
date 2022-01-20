@@ -10,6 +10,7 @@
         let autocomplete;
         let googleMapDisplayObject;
         let markers = [];
+        var iconBase = "https://maps.google.com/mapfiles/kml/"
         function initMap(){
             visiting_area_autocomplete = create_autocomplete_visiting_area_obj("visiting_area_input");
             visiting_area_autocomplete.addListener('place_changed', onVisitingAreaChanged);
@@ -35,14 +36,15 @@
 
         function createGoogleMap(lat,lng){
             const visiting_area_center = {lat: Number(lat), lng: Number(lng) };
-                 googleMapDisplayObject = new google.maps.Map(document.getElementById("map"), {
-                  zoom: 11,
-                  center: visiting_area_center,
-                });
-                const marker = new google.maps.Marker({
-                  position: visiting_area_center,
-                  map: googleMapDisplayObject,
-                });
+            googleMapDisplayObject = new google.maps.Map(document.getElementById("map"), {
+              zoom: 10,
+              center: visiting_area_center,
+            });
+            const marker = new google.maps.Marker({
+              position: visiting_area_center,
+              map: googleMapDisplayObject,
+              icon: {url: iconBase + 'paddle/ylw-blank.png',scaledSize: new google.maps.Size(20,20)}
+            });
         }
         window.globalDestinationPlaceChangedCalledTimes = 0;
         function onDestinationPlaceChanged(){
@@ -129,10 +131,10 @@
                                 console.log("the lat and lng of", home_name, "is", home_lat, home_lng);
                                 localStorage.setItem('home_name', home_name);
                                 document.getElementById("home_autocomplete").value = "";
-                                hideHomeInput()
+                                hideHomeInput();
                                 document.getElementById("home_name").textContent=home_name;
                                 addMarker({coordinates:{lat: home_lat, lng: home_lng},
-                                           content:home_name});
+                                           content:home_name, icon: iconBase + 'pal3/icon56.png'});
                                 }
                             });
                         }
@@ -300,13 +302,15 @@
                     map:googleMapDisplayObject
                 });
 
-                if (props.iconImage){
-                    marker.setIcon(props.iconImage);
+                if (props.icon){
+                    console.log("in icon")
+                    marker.setIcon(props.icon);
                 }
                 if (props.content){
                     var infoWindow = new google.maps.InfoWindow({
                         content:props.content
                     });
+                    marker.setTitle(props.content);
                     marker.addListener('click', function(){
                         infoWindow.open(googleMapDisplayObject, marker);
                     });
@@ -390,23 +394,36 @@
 
     <div id="locations_block">
     <ol type="1" id="locations">
-        <option id="details"></option>
-        {% for location_name,place_id,location  in locations %}
-            {% if location.place_type != "home" %}
-                <li class="location" id="{{loop.index0}}">
-                    <div>
-                    <option class="locationName" id="{{place_id}}">{{location_name}}</option>
-                    {% if location.visit_minutes != None %}
-                        {{location.visit_minutes/60}} hours
-                    {% endif %}
+<!--        <option id="details"></option>-->
+<!--        {% for location_name,place_id,location  in locations %}-->
+<!--            {% if location.place_type != "home" %}-->
+<!--                <li class="location" id="{{loop.index0}}">-->
+<!--                    <div id="location">-->
+<!--                    <option class="locationName" id="{{place_id}}">{{location_name}}</option>-->
+<!--                    {% if location.visit_minutes != None %}-->
+<!--                        {% if location.visit_minutes > 60 %}-->
+<!--                            {{location.visit_minutes/60}} hours-->
+<!--                        {% else %}-->
+<!--                            {{location.visit_minutes/60}} hour-->
+<!--                        {% endif %}-->
+<!--                    {% endif %}-->
+<!--                    </div>-->
+<!--                    <button>remove</button>-->
+<!--                </li>-->
+<!--            {% endif %}-->
+<!--        {% endfor %}-->
+         <option id="details"></option>
+                <li class="location">
+                    <div id="location">
+                    <option class="locationName">locat namsdfe sdf</option>
+                    2 hours
                     </div>
                     <button>remove</button>
                 </li>
-            {% endif %}
-        {% endfor %}
+        <button id="removeAllDestinationsButton" onclick="removeAllDestinations()">remove all destinations</button>
     </ol>
     </div>
-    <div id="map"></div>
+    <div id="map">f</div>
     <script src="{{url_for('static', filename='main.js')}}"> defer></script>
 </body>
 </html>

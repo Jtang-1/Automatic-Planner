@@ -33,13 +33,44 @@ header h1{
     background-color: white;
 }
 
+html,
+body{
+    height:100%;
+}
 
+#locations_block
+{
+
+    background-color: yellow;
+    height: 50px;
+    width: 40%;
+    float: left;
+
+}
+
+.locationName{
+    display:inline-block;
+    overflow-wrap:break-word;
+    word-wrap: break-all;
+    white-space:normal;
+    border: 1px dashed grey;
+}
+
+.location{
+    border: 1px dashed green;
+}
+#location{
+    display:inline;
+    border: 1px dashed red;
+}
 .hidden
 {
     display: None;
 }
 
 #map {
-  height: 400px;
+  height: 500px;
   /* The height is 400 pixels */
-  width: 100%;
+  background-color: pink;
+  width:50%;
+  float: right;

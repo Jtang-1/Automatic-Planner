@@ -22,7 +22,21 @@ addGlobalEventListener('click', "button", e => {
             locations.removeChild(location)
         }
     }
-})
+});
+
+//Show marker on map when location is clicked
+addGlobalEventListener('click', ".locationName", e => {
+    console.log("clicked")
+    locationNameElement = e.target
+    locationName = locationNameElement.textContent
+    console.log("event listener for marker location name is", locationName)
+    place_id = locationNameElement.id
+    let placeIdJSON = JSON.stringify({
+        "place_ID":place_id
+    });
+    sendInfo(placeIdJSON, "/getLocationIndex", displayMarkerContent);
+});
+
 
 function removeMarker(jsonResponse){
     console.log('remove marker json response is', jsonResponse);
@@ -30,6 +44,19 @@ function removeMarker(jsonResponse){
     index = jsonResponse["index"];
     markers[index].setMap(null);
     markers.splice(index, 1);
+}
+
+function displayMarkerContent(jsonResponse){
+    index = jsonResponse["index"];
+    console.log("display marker index type is", typeof index)
+    interested_marker = markers[index]
+    console.log("interseted marker content is", interested_marker.content)
+    console.log("content type is", typeof interested_marker.content)
+    var infoWindow = new google.maps.InfoWindow({
+                        content:interested_marker.getTitle()
+                     });
+    infoWindow.open(googleMapDisplayObject, interested_marker);
+
 }
 
 function sendPlaceInfo(place,url,callback){
@@ -71,10 +98,31 @@ function sendInfo(info, url, callback){
                 console.log("send info callback called")
             }
             $("#locations_block").load(" #locations_block > *");
+            console.log("after refresh",jsonResponse)
+            return jsonResponse
         }
     };
     console.log("time in sendInfo is", info)
     console.log("type in send info is", typeof info)
+    request.send(info)
+}
+
+function getInfo(info, url, callback){
+    const request = new XMLHttpRequest()
+    request.open("GET", url, true)
+    request.onreadystatechange = () => {
+        if(request.readyState==4){
+            var jsonResponse = JSON.parse(request.response)
+            console.log("getInfo Loaded", jsonResponse);
+            if (typeof callback == 'function'){
+                callback(jsonResponse);
+                console.log("Get info callback called")
+            }
+            else{
+                return jsonResponse
+            }
+        }
+    };
     request.send(info)
 }
 
@@ -169,5 +217,19 @@ function reformatIsoDate(date){
     month = date[1]
     day = date[2]
     return [month, day, year].join('-')
+}
+
+function removeAllDestinations(){
+    sendInfo("", "/removeAllDestinations");
+    if (localStorage.getItem('home_exists')){
+        localStorage.removeItem('home_exists');
+        document.getElementById("home_form").style.display="block";
+        document.getElementById("home_value_display").style.display="None";
+    }
+    for (let i = 0; i<markers.length; i++){
+        markers[i].setMap(null)
+    }
+    markers=[];
+
 }
 
