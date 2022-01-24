@@ -4,8 +4,8 @@ const locations = document.querySelector("ol")
 //Remove Place
 addGlobalEventListener('click', "button", e => {
     const parent = e.target.parentNode
-    console.log("parent id is", parent.id)
-    if(parent.className === 'location'){
+    console.log("parent class name is", parent.className)
+    if(parent.className === 'location_block'){
     locationNameElement = parent.querySelector(".locationName")
     locationName = locationNameElement.textContent
     place_id = locationNameElement.id
@@ -107,24 +107,6 @@ function sendInfo(info, url, callback){
     request.send(info)
 }
 
-function getInfo(info, url, callback){
-    const request = new XMLHttpRequest()
-    request.open("GET", url, true)
-    request.onreadystatechange = () => {
-        if(request.readyState==4){
-            var jsonResponse = JSON.parse(request.response)
-            console.log("getInfo Loaded", jsonResponse);
-            if (typeof callback == 'function'){
-                callback(jsonResponse);
-                console.log("Get info callback called")
-            }
-            else{
-                return jsonResponse
-            }
-        }
-    };
-    request.send(info)
-}
 
 function addGlobalEventListener(type, selector, callback){
     document.addEventListener(type, e=> {
@@ -233,3 +215,8 @@ function removeAllDestinations(){
 
 }
 
+destination_form.addEventListener('submit', function(e){
+    console.log("in prevent default")
+    e.preventDefault();
+    sendDestination();
+});

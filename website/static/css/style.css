@@ -1,26 +1,43 @@
+/*
+Primary:
+Black: 011627
+Eggshell: F3EFE0
+
+Secondary:
+Red:A41623
+
+Accent:
+Capri/ Blue: 3ABEFF
+*/
+
+*{
+    font-family: Verdana !important;
+}
 body
 {
     margin: 0px;
     padding: 0px;
-    background-color: #D6E5FD;
+    background-color: #F3EFE0;
+    height:100%;
+
 }
 
 header
 {
-
+    color: #F3EFE0;
     position: relative;
     text-align: center;
     height: 100px;
     margin:0px;
     display: block;
-    background-color: #F34F2C;
+    background-color: #011627;
 }
 
 header h1{
     position: absolute;
     margin-top: 0px;
-    left: 60px;
-    top: 30px;
+    left: 80px;
+    top: 15px;
 
 }
 
@@ -28,49 +45,162 @@ header h1{
 {
     position: absolute;
     right: 20px;
-    top: 70px;
+    top: 60px;
     margin:0px;
-    background-color: white;
+    color: #F3EFE0;
 }
 
 html,
-body{
+#locations,
+#details{
     height:100%;
 }
 
-#locations_block
-{
+#visiting_area_div,
+#visiting_dates_div,
+#home_time_form{
+    margin:5px;
+    padding: 8px;
+    border: 1px solid #A41623;
+    border-radius: 5px;
+    display: inline-block;
+    text-align: center;
+    color: #011627;
+    font-weight: 525;
+}
 
-    background-color: yellow;
-    height: 50px;
+#home_div{
+    margin:5px;
+    margin-top: 30px;
+    padding: 5px;
+    border: 1px solid #A41623;
+    border-radius: 5px;
+    color: #011627;
+    width:460px;
+    font-weight: normal;
+
+}
+
+#leave_time_div{
+    border-right: 2px solid #011627;
+    padding: 8px;
+    display:inline;
+    margin-right: 8px;
+    height: 100%;
+    color: #011627;
+    font-weight: bold;
+
+}
+
+#destination_form{
+    margin:5px;
+    padding: 8px;
+    border: 1px solid #A41623;
+    border-radius: 5px;
+    max-width: 700px;
+    display: block;
+    overflow-wrap:break-word;
+    word-wrap: break-all;
+    white-space:normal;
+    color: #011627;
+    font-weight: bold;
+
+}
+
+#locations_block
+{   border-top: 2px solid black;
+    background-color: green;
     width: 40%;
     float: left;
+    margin-bottom: 200px;
 
+}
+
+button{
+    cursor: pointer;
+    padding: 5px 5px;
+    background-color: #A41623;
+    color: #F3EFE0;
+    border: none;
+    border-radius: 5px;
+    font-size: 11px;
 }
 
 .locationName{
     display:inline-block;
     overflow-wrap:break-word;
     word-wrap: break-all;
+    padding: 5px;
     white-space:normal;
-    border: 1px dashed grey;
+    border-right: 2px solid #011627;
+    width: 70%;
+    cursor: pointer;
+}
+
+.location_block{
+    width:100%;
+    margin-bottom: 5px;
+
 }
 
 .location{
-    border: 1px dashed green;
+    display:inline-block;
+    border: 2px solid #A41623;
+    border-radius: 5px;
+    width:85%;
+    background: white;
+    color:#011627;
 }
-#location{
-    display:inline;
-    border: 1px dashed red;
+
+#removeAllDestinationsButton{
+    margin-left: 30px;
 }
+
 .hidden
 {
     display: None;
 }
 
 #map {
-  height: 500px;
+  height: 70%;
   /* The height is 400 pixels */
-  background-color: pink;
-  width:50%;
+  width:60%;
   float: right;
+}
+
+.input-container input {
+    box-sizing: border-box;
+    position: relative;
+    outline: 0;
+    height: 20px;
+    width: 100px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    background: transparent;
+    position: absolute;
+    top: 0;
+    left: -25px;
+    width: 100%;
+    color: transparent;
+    cursor: pointer;
+
+}
+
+#showScheduleDiv{
+    margin:10px;
+    color:#011627;
+    font-weight: bold;
+
+}
+
+#showSchedule{
+    cursor: pointer;
+    padding: 10px 10px;
+    background-color: #3ABEFF;
+    color: #011627;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+}

@@ -19,16 +19,13 @@
                 lng = localStorage.getItem('visiting_area_lng');
                 initDestHomeAutocomplete(lat,lng);
                 createGoogleMap(lat,lng);
-                {% for location_name,place_id,location in map_locations %}
-                    addMarker({coordinates:{lat: {{location.lat}}, lng: {{location.lng}}},
-                                            content: '{{location_name}}'});
-                {% endfor %}
+                populateMapWithExistingMarkers();
             }
         }
 
         function initDestHomeAutocomplete(visit_place_lat, visit_place_lng){
             destination_autocomplete = createAutocompleteObject("destination_autocomplete",visit_place_lat,visit_place_lng);
-            destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);
+<!--            destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);-->
             console.log("in initDestHomeAutocomplete", visit_place_lng);
             home_autocomplete = createAutocompleteObject("home_autocomplete",visit_place_lat,visit_place_lng);
             home_autocomplete.addListener('place_changed', onHomePlaceChanged);
@@ -47,60 +44,41 @@
             });
         }
         window.globalDestinationPlaceChangedCalledTimes = 0;
-        function onDestinationPlaceChanged(){
-            window.globalDestinationPlaceChangedCalledTimes += 1
-            console.log("global tracker", window.globalDestinationPlaceChangedCalledTimes)
-            var place = destination_autocomplete.getPlace();
-            var form = document.getElementById('destination_form');
-            window.globalDestinationPlaceChangedIterator = 1;
-            var eventWithSubmit = function(evt){
-                if(form.getAttribute('eventWithSubmit') == 'true'){
-                    evt.preventDefault();
-                    console.log("IN EVENT")
-                    if (window.globalDestinationPlaceChangedIterator != window.globalDestinationPlaceChangedCalledTimes){
-                        console.log("In second IF global tracker", window.globalDestinationPlaceChangedCalledTimes)
-                        console.log("In second IF iterator", window.globalDestinationPlaceChangedIterator)
-                        window.globalDestinationPlaceChangedIterator += 1;
-                        return;
-                    }
-                    var hours = document.getElementById('visit_hours').value;
-                    console.log("hours value is", hours)
-                    function loadDestination() {
-                        $.ajax({
-                            url:"/loadNewDestinationMapData",
-                            type: "GET",
-                            dataType: "json",
-                            success: function(data){
-                                destination_name = data["new_destination_name"];
-                                destination_lat = data["new_destination_lat_lng"][0];
-                                destination_lng = data["new_destination_lat_lng"][1];
-                                console.log("the lat and lng of", destination_name, "is", destination_lat, destination_lng);
-                                addMarker({coordinates:{lat: destination_lat, lng: destination_lng},
-                                            content: destination_name});
-                            }
-                        });
-                    }
-                    sendInfo(hours,"/receiveVisitHours", function(){
-                        sendPlaceInfo(place,"/receiveDestination", loadDestination);
-                    });
-<!--                    sendInfo(hours,"/receiveVisitHours")-->
-<!--                    setTimeout(function(){-->
-<!--                        sendPlaceInfo(place,"/receiveDestination", loadDestination);-->
-<!--                    }, 1000);-->
 
+        function sendDestination(){
+            setTimeout(function(){
+                var place = destination_autocomplete.getPlace();
+                if (place.place_id){
+                    var form = document.getElementById('destination_form');
+                    console.log("place is", place);
+                    var hours = document.getElementById('visit_hours').value;
+                    sendInfo(hours,"/receiveVisitHours")
+                        setTimeout(function(){
+                            sendPlaceInfo(place,"/receiveDestination", addDestinationMarker);
+                        }, 250);
                     document.getElementById("destination_autocomplete").value = "";
                     console.log("form sent");
-                    form.setAttribute('eventWithSubmit','false');
-                    window.globalDestinationPlaceChangedCalledTimes = 0
                 }
-            };
+                else{
+                    alert("Not a valid place.");
+                }
+            }, 200);
+        }
 
-            if (!place.place_id){
-                document.getElementById("destination_autocomplete".placeholder = "Enter a place");
-            } else{
-                form.addEventListener("submit", eventWithSubmit ,{once:true});
-                form.setAttribute('eventWithSubmit','true');
-            }
+        function addDestinationMarker() {
+            $.ajax({
+                url:"/loadNewDestinationMapData",
+                type: "GET",
+                dataType: "json",
+                success: function(data){
+                    destination_name = data["new_destination_name"];
+                    destination_lat = data["new_destination_lat_lng"][0];
+                    destination_lng = data["new_destination_lat_lng"][1];
+                    console.log("the lat and lng of", destination_name, "is", destination_lat, destination_lng);
+                    addMarker({coordinates:{lat: destination_lat, lng: destination_lng},
+                                content: destination_name});
+                }
+            });
         }
 
         window.globalHomePlaceChangedCalledTimes = 0;
@@ -181,6 +159,7 @@
                                 document.getElementById("visiting_area_input").value = "";
                                 hideVisitingAreaInput();
                                 createGoogleMap(lat,lng);
+                                populateMapWithExistingMarkers();
                                 }
                             });
                         }
@@ -296,6 +275,19 @@
             sendInfo(return_time, "/receiveDayEndTime");
         }
 
+        function populateMapWithExistingMarkers(){
+            {% for location_name,place_id,location in map_locations %}
+                {% if location.place_type == "home" %}
+                    addMarker({coordinates:{lat: {{location.lat}}, lng: {{location.lng}}},
+                                    content: '{{location_name}}', icon: iconBase + 'pal3/icon56.png'});
+                {% else %}
+                    addMarker({coordinates:{lat: {{location.lat}}, lng: {{location.lng}}},
+                                    content: '{{location_name}}'});
+                {% endif %}
+
+            {% endfor %}
+        }
+
         function addMarker(props){
                 const marker = new google.maps.Marker({
                     position: props.coordinates,
@@ -330,100 +322,112 @@
         <h1>Automatic Planner</h1>
         <p id="slogan"><i>Create the most efficient itinerary by minimizing travel time - leaving more time to be where you want to be</i></p>
     </header>
+
     <div id="visiting_area_div">
         <form id="visiting_area_form"action="/" method="POST">
-            <div><label for="visiting_area_input">Where are you visiting?</label>
-            <input type="text" id="visiting_area_input" style="width:300px" placeholder="e.g. New York, San Francisco, Tokyo">
+            <div><label for="visiting_area_input">Where to?</label>
+            <input type="text" id="visiting_area_input" style="width:300px" placeholder="e.g. New York, San Francisco, Seattle">
                 <button> Submit </button></div>
         </form>
         <div id="visiting_area_display" class="hidden">
             <span>
                 Traveling to {{visit_place}}
-                <button onclick="showVisitingAreaInput()">Change Place</button>
+                <button onclick="showVisitingAreaInput()">Change place</button>
             </span>
         </div>
     </div>
 
-    <form action="/" method="POST">
-        <div> </div><label>Dates</label>
-        <span id="start_date_value"> </span>
-        <input type="text" placeholder="MM/DD/YYYY" onfocus="(this.type='date')" onblur="(this.type='text')" id="start_date_input"  style="width:150px" onchange="onStartDateChanged()">
-            through
-        <span id="end_date_value"> </span>
-        <input type="text" placeholder="MM/DD/YYYY" onfocus="(this.type='date')" onblur="(this.type='text')" id="end_date_input"  style="width:150px" onchange="onEndDateChanged()">
-        </div>
-    </form>
+    <div id="visiting_dates_div">
+        <form action="/" method="POST">
+            <div class="input-container">
+            <label>Dates</label>
+                <input type="text" placeholder="Start date" onfocus="(this.type='date')" onblur="(this.type='text')" onkeydown="return false" id="start_date_input" onchange="onStartDateChanged()">
+                <input type="text" placeholder="End date" onfocus="(this.type='date')" onblur="(this.type='text')" onkeydown="return false" id="end_date_input" onchange="onEndDateChanged()">
+            </div>
+        </form>
+    </div>
 
     <div id="home_div">
         <form id="home_form" action="/" method="POST">
-                <label for="home_autocomplete">Where are you staying?</label>
+                <label for="home_autocomplete">Staying at?</label>
                 <input type="text" id="home_autocomplete" style="width:300px">
-                <button> Add </button>
+                <button> Submit </button>
         </form>
 
         <div id="home_value_display" class="hidden">
             <span>
                 Staying at <span id="home_name"> </span>
-                <button type="submit" id="changeHomeButton" onclick="showHomeInput()">Change Home</button>
+                <button type="submit" id="changeHomeButton" onclick="showHomeInput()">Change home</button>
             </span>
         </div>
     </div>
 
-    <div>
-        <form id="home_time_form" action="/" method="POST">
-            <label>Time to start your day:</label>
+    <form id="home_time_form" action="/" method="POST">
+        <label>Day start time:</label>
+        <div id="leave_time_div">
             <input type="time" id="leave_time_input" style="width:100px" onchange="onLeaveTimeChanged()">
-            <label>Time to end your day:</label>
-            <input type="time" id="return_time_input" style="width:100px" onchange="onReturnTimeChanged()">
+        </div>
+        <label>Day end time:</label>
+        <input type="time" id="return_time_input" style="width:100px" onchange="onReturnTimeChanged()">
 
-        </form>
-    </div>
+    </form>
 
     <form id="destination_form" method="POST">
         <div>
         <label for="destination_autocomplete">Destination:</label>
         <input type="text" id="destination_autocomplete"  style="width:300px">
-        <input type="number" id="visit_hours" value=1 style="width:50px" min="0" step=.5>
-        <button type="submit"> Add Location </button>
+            for
+        <input type="number" id="visit_hours" value=1 style="width:40px" min="0" step=.5>
+            hour(s)
+        <button type="submit"> Add destination </button>
         </div>
     </form>
-    <form action ="/results" method = "POST">
-        <label><input type="checkbox" value="avoidDriving" name="drivingAllowance">Avoid Driving</label>
-        <input type="submit" id="showSchedule" value = "Show Schedule">
-    </form>
+
+    <div id="showScheduleDiv">
+        <form action ="/results" method = "POST">
+            <label id="avoidDrivingInput"><input type="checkbox" value="avoidDriving" name="drivingAllowance">Avoid Driving</label>
+            <input type="submit" id="showSchedule" value = "Show your schedule">
+        </form>
+    </div>
+
 
     <div id="locations_block">
     <ol type="1" id="locations">
-<!--        <option id="details"></option>-->
-<!--        {% for location_name,place_id,location  in locations %}-->
-<!--            {% if location.place_type != "home" %}-->
-<!--                <li class="location" id="{{loop.index0}}">-->
-<!--                    <div id="location">-->
-<!--                    <option class="locationName" id="{{place_id}}">{{location_name}}</option>-->
-<!--                    {% if location.visit_minutes != None %}-->
-<!--                        {% if location.visit_minutes > 60 %}-->
-<!--                            {{location.visit_minutes/60}} hours-->
-<!--                        {% else %}-->
-<!--                            {{location.visit_minutes/60}} hour-->
-<!--                        {% endif %}-->
-<!--                    {% endif %}-->
-<!--                    </div>-->
-<!--                    <button>remove</button>-->
-<!--                </li>-->
-<!--            {% endif %}-->
-<!--        {% endfor %}-->
-         <option id="details"></option>
-                <li class="location">
-                    <div id="location">
-                    <option class="locationName">locat namsdfe sdf</option>
-                    2 hours
+        {% for location_name,place_id,location  in locations %}
+            {% if location.place_type != "home" %}
+                <li class="location_block" id="{{loop.index0}}">
+                    <div class="location">
+                    <option class="locationName" id="{{place_id}}">{{location_name}}</option>
+                    {% if location.visit_minutes != None %}
+                        {% if location.visit_minutes > 60 %}
+                            {{location.visit_minutes/60}} hrs
+                        {% else %}
+                            {{location.visit_minutes/60}} hr
+                        {% endif %}
+                    {% endif %}
                     </div>
                     <button>remove</button>
                 </li>
-        <button id="removeAllDestinationsButton" onclick="removeAllDestinations()">remove all destinations</button>
+            {% endif %}
+        {% endfor %}
+<!--                <li class="location_block">-->
+<!--                    <div class="location">-->
+<!--                    <option class="locationName">Quail Hill Community Center</option>-->
+<!--                    2 hour-->
+<!--                    </div>-->
+<!--                    <button>remove</button>-->
+<!--                </li>-->
+<!--                <li class=""location_block"">-->
+<!--                    <div class="location">-->
+<!--                    <option class="locationName">LOCATION 2</option>-->
+<!--                    2 hour-->
+<!--                    </div>-->
+<!--                    <button>remove</button>-->
+<!--                </li>-->
     </ol>
+        <button id="removeAllDestinationsButton" onclick="removeAllDestinations()">Remove all destinations</button>
     </div>
-    <div id="map">f</div>
+    <div id="map"></div>
     <script src="{{url_for('static', filename='main.js')}}"> defer></script>
 </body>
 </html>
