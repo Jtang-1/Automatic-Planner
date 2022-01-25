@@ -3,16 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <title>Itinerary</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/results_style.css')}}" type="text/css"/>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script>
+        var iconBase = "https://maps.google.com/mapfiles/kml/"
+        let googleMapDisplayObject;
+        let markers = [];
+        function initMap(){
+<!--            lat = localStorage.getItem('visiting_area_lat');-->
+            lat = 37.7749
+            lng = -122.4194
+            console.log("lat type is", typeof lat);
+<!--            lng = localStorage.getItem('visiting_area_lng');-->
+            createGoogleMap(lat,lng);
+            populateMapWithExistingMarkers();
+
+        }
+
+        function createGoogleMap(lat,lng){
+            const visiting_area_center = {lat: lat, lng: lng };
+            googleMapDisplayObject = new google.maps.Map(document.getElementById("map"), {
+              zoom: 10,
+              center: visiting_area_center
+            });
+            const marker = new google.maps.Marker({
+              position: visiting_area_center,
+              map: googleMapDisplayObject,
+              icon: {url: iconBase + 'paddle/ylw-blank.png',scaledSize: new google.maps.Size(20,20)}
+            });
+        }
+
+        function populateMapWithExistingMarkers(){
+            let dayMarkers = []
+            {% for day_itinerary in itinerary.days_itinerary.values() %}
+                dayMarkers = []
+                {% for scheduled_location in day_itinerary.scheduled_locations %}
+                    var homeMarkerAdded = false;
+                    {% if scheduled_location.place_type == "home" %}
+                        addMarker({coordinates:{lat: {{scheduled_location.lat}}, lng: {{scheduled_location.lng}}},
+                                    content: '{{scheduled_location.name}}', icon: iconBase + 'pal3/icon56.png'});
+                        homeMarkerAdded = true;
+                    {% else %}
+                        marker = addMarker({coordinates:{lat: {{scheduled_location.lat}}, lng: {{scheduled_location.lng}}},
+                                    content: '{{scheduled_location.name}}'});
+                        dayMarkers.push(marker);
+                    {% endif %}
+                {% endfor %}
+                markers.push(dayMarkers)
+            {% endfor %}
+        }
+
+        function addMarker(props){
+            const marker = new google.maps.Marker({
+                position: props.coordinates,
+                map:googleMapDisplayObject
+            });
+
+            if (props.icon){
+                console.log("in icon")
+                marker.setIcon(props.icon);
+            }
+            if (props.content){
+                var infoWindow = new google.maps.InfoWindow({
+                    content:props.content
+                });
+                marker.setTitle(props.content);
+                marker.addListener('click', function(){
+                    infoWindow.open(googleMapDisplayObject, marker);
+                });
+            console.log("Added to marker")
+           }
+           return marker
+        }
+    </script>
+    <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBncbwIJ2Ug0E7oPoYubcplGGlD-dEuo98&libraries=places&callback=initMap"
+    defer>
+    </script>
 </head>
 <body>
+    <header>
+        <h1>Automatic Planner - Your Itinerary</h1>
+    </header>
     <form action ="/" method = "GET">
         <button> Revise Locations </button>
     </form>
-
+    <button id="hide"> hide marker</button>
+    <button id = "show"> show marker</button>
     {% for day_itinerary in itinerary.days_itinerary.values() %}
     <ol type="1">
         {% if day_itinerary.is_empty() == false %}
-        <header>Date: {{day_itinerary.date}}</header>
+            <h2>Date: {{day_itinerary.date}}</h2>
+            <button class="mapControlButton" id={{loop.index}}></button>
         {% endif %}
         <option id="details"></option>
         {% for scheduled_location in day_itinerary.scheduled_locations %}
@@ -26,8 +109,12 @@
                 {% if loop.index0 != day_itinerary.scheduled_locations|count-1 %}
                     {% set time, mode = day_itinerary.transport_info_from(scheduled_location) %}
                     {{mode}}: {{time}} minutes
-                    Arrive Time: {{scheduled_location.arrive_time}}
-                    Leave Time: {{scheduled_location.leave_time}}
+                {% endif %}
+                {% if loop.index0 > 0 %}
+                    Arrive Time: {{scheduled_location.arrive_time.strftime('%I:%M %p')}}
+                {% endif %}
+                {% if loop.index0 != day_itinerary.scheduled_locations|count-1 %}
+                    Leave Time: {{scheduled_location.leave_time.strftime('%I:%M %p')}}
                 {% endif %}
             </div>
         </p>
@@ -41,5 +128,7 @@
         <li> {{location.name}} {{location.visit_minutes/60}} </li>
     </ul>
     {% endfor %}
+    <script src="{{url_for('static', filename='results.js')}}"> defer></script>
+    <div id="map"></div>
 </body>
 </html>

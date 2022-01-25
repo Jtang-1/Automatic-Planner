@@ -13,7 +13,6 @@
         var iconBase = "https://maps.google.com/mapfiles/kml/"
         function initMap(){
             visiting_area_autocomplete = create_autocomplete_visiting_area_obj("visiting_area_input");
-            visiting_area_autocomplete.addListener('place_changed', onVisitingAreaChanged);
             if (localStorage.getItem('visiting_area_exists')){
                 lat = localStorage.getItem('visiting_area_lat');
                 lng = localStorage.getItem('visiting_area_lng');
@@ -28,7 +27,7 @@
 <!--            destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);-->
             console.log("in initDestHomeAutocomplete", visit_place_lng);
             home_autocomplete = createAutocompleteObject("home_autocomplete",visit_place_lat,visit_place_lng);
-            home_autocomplete.addListener('place_changed', onHomePlaceChanged);
+<!--            home_autocomplete.addListener('place_changed', onHomePlaceChanged);-->
         }
 
         function createGoogleMap(lat,lng){
@@ -43,7 +42,6 @@
               icon: {url: iconBase + 'paddle/ylw-blank.png',scaledSize: new google.maps.Size(20,20)}
             });
         }
-        window.globalDestinationPlaceChangedCalledTimes = 0;
 
         function sendDestination(){
             setTimeout(function(){
@@ -81,52 +79,77 @@
             });
         }
 
-        window.globalHomePlaceChangedCalledTimes = 0;
-        function onHomePlaceChanged(){
-            window.globalHomePlaceChangedCalledTimes += 1;
-            var place = home_autocomplete.getPlace();
-            var form = document.getElementById('home_form');
-            window.globalHomePlaceChangedIterator = 1;
-            var eventWithSubmit = function(evt){
-                if(form.getAttribute('eventWithSubmit') == 'true'){
-                    evt.preventDefault();
-                    if (window.globalHomePlaceChangedIterator != window.globalHomePlaceChangedCalledTimes){
-                        console.log("In second IF global tracker", window.globalHomePlaceChangedCalledTimes)
-                        console.log("In second IF iterator", window.globalHomePlaceChangedIterator)
-                        window.globalHomePlaceChangedIterator += 1;
-                        return;
-                    }
-                    function loadHome() {
-                        $.ajax({
-                            url:"/loadHomeMapData",
-                            type: "GET",
-                            dataType: "json",
-                            success: function(data){
-                                home_name = data["home_name"];
-                                home_lat = data["home_lat_lng"][0];
-                                home_lng = data["home_lat_lng"][1];
-                                console.log("type of lat is", typeof home_lat)
-                                console.log("the lat and lng of", home_name, "is", home_lat, home_lng);
-                                localStorage.setItem('home_name', home_name);
-                                document.getElementById("home_autocomplete").value = "";
-                                hideHomeInput();
-                                document.getElementById("home_name").textContent=home_name;
-                                addMarker({coordinates:{lat: home_lat, lng: home_lng},
-                                           content:home_name, icon: iconBase + 'pal3/icon56.png'});
-                                }
-                            });
-                        }
+        function sendHome(){
+            setTimeout(function(){
+                var place = home_autocomplete.getPlace();
+                if (place.place_id){
+                    var form = document.getElementById('home_form');
+                    console.log("place is", place);
                     sendPlaceInfo(place,"/receiveHome", loadHome);
-                    form.setAttribute('eventWithSubmit','false');
-                    window.globalHomePlaceChangedCalledTimes = 0;
+                    document.getElementById("home_autocomplete".placeholder = "Enter a place");
+                    console.log("form sent");
                 }
-            }
-            if (!place.place_id){
-                document.getElementById("home_autocomplete".placeholder = "Enter a place");
-            } else{
-                form.addEventListener("submit", eventWithSubmit,{once:true});
-                form.setAttribute('eventWithSubmit','true');
-            }
+                else{
+                    alert("Not a valid place.");
+                }
+            }, 200);
+        }
+
+        function loadHome() {
+            $.ajax({
+                url:"/loadHomeMapData",
+                type: "GET",
+                dataType: "json",
+                success: function(data){
+                    home_name = data["home_name"];
+                    home_lat = data["home_lat_lng"][0];
+                    home_lng = data["home_lat_lng"][1];
+                    console.log("type of lat is", typeof home_lat)
+                    console.log("the lat and lng of", home_name, "is", home_lat, home_lng);
+                    localStorage.setItem('home_name', home_name);
+                    document.getElementById("home_autocomplete").value = "";
+                    hideHomeInput();
+                    document.getElementById("home_name").textContent=home_name;
+                    addMarker({coordinates:{lat: home_lat, lng: home_lng},
+                               content:home_name, icon: iconBase + 'pal3/icon56.png'});
+                }
+            });
+        }
+
+        function sendVisitingArea(){
+            setTimeout(function(){
+                var place = visiting_area_autocomplete.getPlace();
+                if (place.place_id){
+                    var form = document.getElementById('visiting_area_form');
+                    console.log("place is", place);
+                    sendPlaceInfo(place,"/receiveVisitingArea",loadVisitingArea);
+                    document.getElementById("visiting_area_autocomplete".placeholder = "Enter a place");
+                    console.log("form sent");
+                }
+                else{
+                    alert("Not a valid place.");
+                }
+            }, 200);
+        }
+
+        function loadVisitingArea() {
+            $.ajax({
+                url:"/loadVisitingArea",
+                type: "GET",
+                dataType: "json",
+                success: function(data){
+                    lat = data["lat"]
+                    lng = data["lng"]
+                    console.log("The data is,", lat, "and", lng);
+                    localStorage.setItem('visiting_area_lat', lat);
+                    localStorage.setItem('visiting_area_lng', lng);
+                    initDestHomeAutocomplete(lat,lng);
+                    document.getElementById("visiting_area_input").value = "";
+                    hideVisitingAreaInput();
+                    createGoogleMap(lat,lng);
+                    populateMapWithExistingMarkers();
+                }
+            });
         }
 
         window.globalVisitingAreaChangedCalledTimes = 0;
@@ -331,7 +354,7 @@
         </form>
         <div id="visiting_area_display" class="hidden">
             <span>
-                Traveling to {{visit_place}}
+                Traveling to <span id="visitingAreaName">{{visit_place}}</span>
                 <button onclick="showVisitingAreaInput()">Change place</button>
             </span>
         </div>

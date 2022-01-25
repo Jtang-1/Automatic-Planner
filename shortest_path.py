@@ -137,6 +137,7 @@ def add_first_destination(day_plan: DayItinerary):
             break
         elif only_has_not_opened_places_remain():
             print("in only has not opened places remaining")
+            day_plan.scheduled_home.set_leave_time(day_plan.current_time)
             farthest_neighbor = find_has_not_opened_place_minus_wait_and_travel_time(day_plan)
         else:
             farthest_neighbor = farthest_not_home_neighbor(home)

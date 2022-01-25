@@ -1,0 +1,55 @@
+*{
+    font-family: Verdana !important;
+}
+
+html,
+#locations,
+#details{
+    height:100%;
+}
+
+body
+{
+    margin: 0px;
+    padding: 0px;
+    background-color: #F3EFE0;
+    height:100%;
+
+}
+
+#map {
+  height: 70%;
+  /* The height is 400 pixels */
+  width:60%;
+  float: right;
+}
+
+header
+{
+    color: #F3EFE0;
+    position: relative;
+    text-align: center;
+    height: 100px;
+    margin:0px;
+    display: block;
+    background-color: #011627;
+}
+
+header h1{
+    position: absolute;
+    margin-top: 0px;
+    left: 80px;
+    top: 15px;
+
+}
+
+
+button{
+    cursor: pointer;
+    padding: 5px 5px;
+    background-color: #A41623;
+    color: #F3EFE0;
+    border: none;
+    border-radius: 5px;
+    font-size: 11px;
+}

@@ -220,3 +220,15 @@ destination_form.addEventListener('submit', function(e){
     e.preventDefault();
     sendDestination();
 });
+
+home_form.addEventListener('submit', function(e){
+    console.log("in prevent default")
+    e.preventDefault();
+    sendHome();
+});
+
+visiting_area_form.addEventListener('submit', function(e){
+    console.log("in prevent default")
+    e.preventDefault();
+    sendVisitingArea();
+});
