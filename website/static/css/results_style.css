@@ -1,3 +1,15 @@
+/*
+Primary:
+Black: 011627
+Eggshell: F3EFE0
+
+Secondary:
+Red:A41623
+
+Accent:
+Capri/ Blue: 3ABEFF
+*/
+
 *{
     font-family: Verdana !important;
 }
@@ -5,6 +17,7 @@
 html,
 #locations,
 #details{
+    width: 100%;
     height:100%;
 }
 
@@ -14,14 +27,8 @@ body
     padding: 0px;
     background-color: #F3EFE0;
     height:100%;
+    body:100%;
 
-}
-
-#map {
-  height: 70%;
-  /* The height is 400 pixels */
-  width:60%;
-  float: right;
 }
 
 header
@@ -43,7 +50,118 @@ header h1{
 
 }
 
+#reviseLocationsButton{
+    margin: 10px;
+    padding: 10px 10px;
+    background-color: #3ABEFF;
+    color: #011627;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+}
 
+.locationsList{
+    margin-bottom: 50px;
+}
+#dayItineraryBlock{
+    float:left;
+    width: 50%;
+}
+
+.dayHeader{
+    display: inline-block;
+    padding: 0px;
+    margin: 0px;
+    margin-bottom: 5px;
+}
+
+.dayDate{
+    padding: 0px;
+    margin-left: 0px;
+    margin-top: 0px;
+    border-bottom: 2px solid #A41623;
+    margin-right: 20px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    display:inline-block;
+    color: #011627;
+
+}
+
+.locationsBlock{
+    padding: 0px;
+    display: block;
+}
+
+.locationBlock{
+    margin-top: 0px;
+    margin-bottom: 0px
+}
+
+.locationHeader{
+    border: 2px solid #A41623;
+    width: 60%;
+    display: inline-block;
+    border-radius: 5px;
+    background-color: white;
+    color:#011627;
+    margin:0px;
+}
+
+.locationName{
+    display: inline-block;
+    padding-left: 5px;
+    padding-right: 10px;
+    width: 70%;
+    border-right: 2px solid #011627;
+}
+
+.visitHours{
+    display: inline-block;
+    width: 29%
+    text-align: center;
+}
+.locationVisitingTime{
+    display: inline-block;
+    width: 35%;
+    text-align: center;
+}
+
+.transportationDetails{
+    width: 95%;
+    margin-top: 5px;
+    margin-bottom:5px;
+    text-align: center;
+    border-bottom: 1px solid #011627;
+
+}
+
+.homeImg{
+    width: 15px;
+}
+
+.transportModeImg{
+    width: 15px;
+}
+
+#carIcon{
+    width: 18px;
+}
+
+.mapControlButton{
+    display: inline-block;
+}
+
+#map {
+  height: 70%;
+  width:50%;
+  float: right;
+}
+
+#unvisitedPlacesBlock{
+    border: 1px solid pink
+}
 button{
     cursor: pointer;
     padding: 5px 5px;
@@ -52,4 +170,5 @@ button{
     border: none;
     border-radius: 5px;
     font-size: 11px;
+    margin:0px;
 }

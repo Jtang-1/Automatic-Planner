@@ -24,7 +24,7 @@
         function createGoogleMap(lat,lng){
             const visiting_area_center = {lat: lat, lng: lng };
             googleMapDisplayObject = new google.maps.Map(document.getElementById("map"), {
-              zoom: 10,
+              zoom: 11,
               center: visiting_area_center
             });
             const marker = new google.maps.Marker({
@@ -35,9 +35,9 @@
         }
 
         function populateMapWithExistingMarkers(){
-            let dayMarkers = []
+            let dayDestinationMarkers = []
             {% for day_itinerary in itinerary.days_itinerary.values() %}
-                dayMarkers = []
+                dayDestinationMarkers = []
                 {% for scheduled_location in day_itinerary.scheduled_locations %}
                     var homeMarkerAdded = false;
                     {% if scheduled_location.place_type == "home" %}
@@ -47,10 +47,10 @@
                     {% else %}
                         marker = addMarker({coordinates:{lat: {{scheduled_location.lat}}, lng: {{scheduled_location.lng}}},
                                     content: '{{scheduled_location.name}}'});
-                        dayMarkers.push(marker);
+                        dayDestinationMarkers.push(marker);
                     {% endif %}
                 {% endfor %}
-                markers.push(dayMarkers)
+                markers.push(dayDestinationMarkers)
             {% endfor %}
         }
 
@@ -87,48 +87,77 @@
         <h1>Automatic Planner - Your Itinerary</h1>
     </header>
     <form action ="/" method = "GET">
-        <button> Revise Locations </button>
+        <button id = "reviseLocationsButton"> Revise Locations </button>
     </form>
-    <button id="hide"> hide marker</button>
-    <button id = "show"> show marker</button>
-    {% for day_itinerary in itinerary.days_itinerary.values() %}
-    <ol type="1">
+    <div id = "dayItineraryBlock">
+        {% for day_itinerary in itinerary.days_itinerary.values() %}
         {% if day_itinerary.is_empty() == false %}
-            <h2>Date: {{day_itinerary.date}}</h2>
-            <button class="mapControlButton" id={{loop.index}}></button>
+            <ol class = "locationsList" type="1">
+                <div class="dayHeader">
+                <h4 class="dayDate">Date: {{day_itinerary.date}}</h4><button class="mapControlButton" id={{loop.index0}}></button>
+                </div>
+                <div class= "locationsBlock">
+                    {% for scheduled_location in day_itinerary.scheduled_locations %}
+                    <div class="locationBlock">
+                        <div class="locationHeader">
+                            <li><div class="locationName">{{scheduled_location.name}}</div>
+                                <div class = "visitHours">
+                                    {% if loop.index0 != 0 and loop.index0 != day_itinerary.scheduled_locations|count-1%}
+                                        {% if scheduled_location.visit_minutes > 60 %}
+                                            {{scheduled_location.visit_minutes/60}} hrs
+                                        {% else %}
+                                            {{scheduled_location.visit_minutes/60}} hr
+                                        {% endif %}
+                                    {% else %}
+                                        <img id = "homeIcon" class = "homeImg" src={{url_for('static', filename='img/Home_Icon.png')}} alt="Home Icon">
+                                    {% endif %}
+                                </div>
+                            </li>
+                        </div>
+                        <div class="locationVisitingTime">
+                            {% if loop.index0 > 0 %}
+                                {{scheduled_location.arrive_time.strftime('%-I:%M %p')}}
+                            {% endif %}
+                            {% if loop.index0 > 0 and loop.index0 != day_itinerary.scheduled_locations|count-1 %}
+                            -
+                            {% endif %}
+                            {% if loop.index0 != day_itinerary.scheduled_locations|count-1 %}
+                                {{scheduled_location.leave_time.strftime('%-I:%M %p')}}
+                            {% endif %}
+                        </div>
+                            {% if loop.index0 != day_itinerary.scheduled_locations|count-1 %}
+                            <div class="transportationDetails">
+                                {% set time, mode = day_itinerary.transport_info_from(scheduled_location) %}
+                                {% if mode == "driving" %}
+                                    <img id = "carIcon" class = "transportModeImg" src={{url_for('static', filename='img/Car_Icon.png')}} alt="Car Icon">
+                                {% elif mode == "walking" %}
+                                    <img class = "transportModeImg" src={{url_for('static', filename='img/Walking_Icon.png')}} alt="Walking Icon"> {
+                                {% elif mode == "transit" %}
+                                    <img class = "transportModeImg" src={{url_for('static', filename='img/Transit_Icon.png')}} alt="Transit Icon">
+                                {% endif %}
+                                {{time}} minutes
+                            </div>
+                            {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </ol>
         {% endif %}
-        <option id="details"></option>
-        {% for scheduled_location in day_itinerary.scheduled_locations %}
-        <p>
-            <li>{{scheduled_location.name}}
-            {% if loop.index0 != 0 and loop.index0 != day_itinerary.scheduled_locations|count-1%}
-                {{scheduled_location.visit_minutes/60}}
-            {% endif %}
-            </li>
-            <div>
-                {% if loop.index0 != day_itinerary.scheduled_locations|count-1 %}
-                    {% set time, mode = day_itinerary.transport_info_from(scheduled_location) %}
-                    {{mode}}: {{time}} minutes
-                {% endif %}
-                {% if loop.index0 > 0 %}
-                    Arrive Time: {{scheduled_location.arrive_time.strftime('%I:%M %p')}}
-                {% endif %}
-                {% if loop.index0 != day_itinerary.scheduled_locations|count-1 %}
-                    Leave Time: {{scheduled_location.leave_time.strftime('%I:%M %p')}}
-                {% endif %}
-            </div>
-        </p>
         {% endfor %}
-    </ol>
-    {% endfor %}
 
-    <header> Unvisted Place(s)</header>
-    {% for location in itinerary.nonvisted_locations %}
-    <ul>
-        <li> {{location.name}} {{location.visit_minutes/60}} </li>
-    </ul>
-    {% endfor %}
-    <script src="{{url_for('static', filename='results.js')}}"> defer></script>
+    </div>
+
     <div id="map"></div>
+
+    <div id="unvisitedPlacesBlock">
+        <h4> Unvisted Place(s)</h4>
+        {% for location in itinerary.nonvisted_locations %}
+        <ul>
+            <li> {{location.name}} {{location.visit_minutes/60}} </li>
+        </ul>
+        {% endfor %}
+    <script src="{{url_for('static', filename='results.js')}}"> defer></script>
+    </div>
+
 </body>
 </html>
