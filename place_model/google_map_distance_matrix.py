@@ -13,6 +13,7 @@ language = 'en'
 
 # Returns dict with {Origin:{Destination:distance},Origin...} values
 def distance_dict(origins: [Place], destinations: [Place]) -> dict[Place, dict[Place, int]]:
+    print("distance dict called")
     if isinstance(origins, Place):
         origins = [origins]
     if isinstance(destinations, Place):
@@ -31,6 +32,8 @@ def distance_dict(origins: [Place], destinations: [Place]) -> dict[Place, dict[P
 
 def find_travel_time(origin: Place, destination: Place, mode="driving", departure_time="now") -> float:
     reference_time = datetime.datetime(1970, 1, 1)
+    print("origin is", origin)
+    print("find_travel_time called")
     if isinstance(departure_time, datetime.datetime):
         departure_time = int((departure_time - reference_time).total_seconds())
     json_distance_matrix = _raw_distance_matrix(origin, destination, mode=mode, departure_time=departure_time)

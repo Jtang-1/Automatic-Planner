@@ -277,7 +277,7 @@ def add_transport_to_day_itinerary(day_plan: DayItinerary, current_place: Place,
 def get_shortest_transportation(day_plan: DayItinerary, next_place: Place) -> {int, str}:
     print("in get_shortest_transportation")
     if day_plan.is_driving_allowed:
-        modes = {"driving", "walking", "transit"}
+        modes = {"driving", "transit"}
     else:
         modes = {"walking", "transit"}
     departure_time = day_plan.current_date_time

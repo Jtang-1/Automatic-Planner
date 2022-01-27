@@ -221,7 +221,6 @@ def results():
             itinerary = create_trip_itinerary()
             itinerary = shortest_path.create_itinerary(itinerary)
             session["itinerary"] = jsonpickle.encode(itinerary)
-            print("trip plan is")
             for day_itinerary in itinerary.days_itinerary.values():
                 current_day_of_week = day_itinerary.day_of_week
                 print("current_day_of_week is", current_day_of_week)
