@@ -57,7 +57,7 @@ class Place:
         self.lng = lng
         self.lat = lat
 
-    def is_closed_on(self, weekday: int):
+    def is_closed_on(self, weekday: str):
         if self.open_times[weekday] is None:
             return True
         return False

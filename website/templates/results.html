@@ -153,7 +153,6 @@
         <h4> Unvisted Place(s)</h4>
         {% for location in itinerary.nonvisted_locations %}
         <ul>
-            <li> {{location.name}} {{location.visit_minutes/60}} </li>
         </ul>
         {% endfor %}
     <script src="{{url_for('static', filename='results.js')}}"> defer></script>

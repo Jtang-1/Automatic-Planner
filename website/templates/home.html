@@ -75,7 +75,11 @@
                     console.log("the lat and lng of", destination_name, "is", destination_lat, destination_lng);
                     addMarker({coordinates:{lat: destination_lat, lng: destination_lng},
                                 content: destination_name});
+                },
+                error: function(xhr, status, error){
+                    alert("Destination is already chosen")
                 }
+
             });
         }
 
@@ -112,6 +116,9 @@
                     document.getElementById("home_name").textContent=home_name;
                     addMarker({coordinates:{lat: home_lat, lng: home_lng},
                                content:home_name, icon: iconBase + 'pal3/icon56.png'});
+                },
+                error: function(xhr, status, error){
+                    alert("Home added is the same as an existing destination")
                 }
             });
         }

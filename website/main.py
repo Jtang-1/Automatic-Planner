@@ -43,9 +43,11 @@ def home():
         session["place_visiting_name"] = None
         session["home"] = None
         session["new_destination"] = None
+        session["places"] = []
+        session["is_new_destination"] = False
     else:
         for location in session["location"]:
-            locations.append(jsonpickle.decode(location))
+            locations.append(jsonpickle.decode(location, keys=True))
     if "place_visiting_lat_lng" not in session:
         session["place_visiting_lat_lng"] = {"lat": None, "lng": None}
     return render_template("home.html", locations=zip(session["location_name"], session["place_id"], locations),
@@ -65,6 +67,8 @@ def receiveDestination():
         new_place = modify_graph.create_attraction(place_details, session["visit_hours"])
         if new_place.place_id not in session["place_id"]:
             session["new_destination"] = jsonpickle.encode(new_place)
+            session["is_new_destination"] = True
+            session["places"].append(jsonpickle.encode(new_place, keys=True))
             session.modified = True
         process_place(new_place)
         print("in receive destination location names in session are", session["location_name"])
@@ -75,13 +79,20 @@ def receiveDestination():
 def loadNewDestinationMapData():
     new_destination = jsonpickle.decode(session["new_destination"])
     print("new desintation from load call is", new_destination.name)
+    print("session is new desitiaotn is", session["is_new_destination"])
     if isinstance(new_destination, Home):
-        return
-    new_destination_name = new_destination.name
-    new_destination_lat_lng = [new_destination.lat, new_destination.lng]
-    print("new desintation from load call is", new_destination.name)
-    return jsonify(new_destination_name=new_destination_name,
-                   new_destination_lat_lng=new_destination_lat_lng)
+        session["is_new_destination"] = False
+        return None
+    elif not session["is_new_destination"]:
+        session["is_new_destination"] = False
+        return None
+    else:
+        new_destination_name = new_destination.name
+        new_destination_lat_lng = [new_destination.lat, new_destination.lng]
+        print("new desintation from load call is", new_destination.name)
+        session["is_new_destination"] = False
+        return jsonify(new_destination_name=new_destination_name,
+                       new_destination_lat_lng=new_destination_lat_lng)
 
 
 @app.route("/receiveVisitHours", methods=["POST"])
@@ -99,18 +110,20 @@ def receiveHome():
     if request.method == "POST":
         record_inputs_changed()
         place_details = request.get_json(force=True)
-        process_place(modify_graph.create_home(place_details))
+        new_home = modify_graph.create_home(place_details)
+        process_place(new_home)
+        session["places"].append(jsonpickle.encode(new_home, keys=True))
     return jsonify({'result': 'Success!'})
 
 
 @app.route("/loadHomeMapData", methods=["GET"])
 def loadHomeMapData():
-    session_home = jsonpickle.decode(session["home"])
-    home_name = session_home.name
-    home_lat_lng = [session_home.lat, session_home.lng]
-    print(home_lat_lng, "this is home_lat_lng")
-    return jsonify(home_name=home_name, home_lat_lng=home_lat_lng)
-
+    if session["home"]:
+        session_home = jsonpickle.decode(session["home"])
+        home_name = session_home.name
+        home_lat_lng = [session_home.lat, session_home.lng]
+        print(home_lat_lng, "this is home_lat_lng")
+        return jsonify(home_name=home_name, home_lat_lng=home_lat_lng)
 
 @app.route("/removeHome", methods=["POST"])
 def removeHome():
@@ -218,6 +231,12 @@ def results():
             session["driving_allowance"] = True
         print("were inputs changed?", session["inputs_changed"])
         if session["inputs_changed"]:
+            graph = modify_graph.get_graph()
+            graph.clear_graph()
+            for encoded_place in session["location"]:
+                place = jsonpickle.decode(encoded_place, keys=True)
+                modify_graph.add_place(place)
+                modify_graph.add_edges(place)
             itinerary = create_trip_itinerary()
             itinerary = shortest_path.create_itinerary(itinerary)
             session["itinerary"] = jsonpickle.encode(itinerary)
@@ -263,6 +282,7 @@ def removeLocation():
         print("location place_id is", place_id)
         place_id_index = session["place_id"].index(place_id)
         remove_place(place_id)
+        record_inputs_changed()
     return jsonify({'result': 'Success!', 'index': place_id_index})
 
 
@@ -288,9 +308,9 @@ def record_inputs_changed():
 
 def process_place(new_place: Place):
     if new_place.place_id not in session["place_id"]:
-        session["location"].append(jsonpickle.encode(new_place))
-        modify_graph.add_place(new_place)
-        modify_graph.add_edges(new_place)
+        session["location"].append(jsonpickle.encode(new_place, keys=True))
+        # modify_graph.add_place(new_place)
+        # modify_graph.add_edges(new_place)
         session["place_id"].append(new_place.place_id)
         session["location_name"].append(new_place.name)
         if new_place.place_type == "home":
@@ -301,7 +321,7 @@ def remove_place(place_id: str):
     place_id_index = session["place_id"].index(place_id)
     print("place id index is", place_id_index)
     print("location  name is", session["location_name"][place_id_index])
-    remove_place_from_graph(session["place_id"][place_id_index])
+    # remove_place_from_graph(session["place_id"][place_id_index])
     del session["location_name"][place_id_index]
     del session["place_id"][place_id_index]
     del session["location"][place_id_index]
@@ -317,7 +337,7 @@ def remove_place_from_graph(place_id: str):
             place_to_remove = place
             print("place to remove is", place_to_remove.name)
             break
-    graph.remove_vertex(place)
+    graph.remove_vertex(place_to_remove)
     for place in graph.vertices:
         print("remaining places are", place.name)
 

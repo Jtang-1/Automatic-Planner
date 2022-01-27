@@ -1,6 +1,8 @@
 from place_model.edge import Edge
 from place_model.place import Place
 from place_model.home import Home
+import copy
+
 import jsonpickle
 
 
@@ -72,6 +74,10 @@ class PlaceGraph:
         for e in edges_to_delete:
             self.remove_edge(e)
         del self._neighbors[vertex]
+
+    def clear_graph(self):
+        self.vertex, self.edges = set(), set()
+        self._neighbors = {}
 
     def check_if_home(self, vertex):
         if isinstance(vertex, Home):
