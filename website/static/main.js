@@ -232,3 +232,17 @@ visiting_area_form.addEventListener('submit', function(e){
     e.preventDefault();
     sendVisitingArea();
 });
+
+submitScheduleForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    $.ajax({
+        url:"/results",
+        type: "POST",
+        success: function(){
+            location.href = 'results'
+        },
+        error: function(xhr, status, error){
+            alert("All fields aren't filled out or departure time is in the past")
+        }
+    });
+});

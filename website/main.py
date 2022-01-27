@@ -45,6 +45,8 @@ def home():
         session["new_destination"] = None
         session["places"] = []
         session["is_new_destination"] = False
+        record_inputs_changed()
+
     else:
         for location in session["location"]:
             locations.append(jsonpickle.decode(location, keys=True))
@@ -78,8 +80,6 @@ def receiveDestination():
 @app.route("/loadNewDestinationMapData", methods=["GET"])
 def loadNewDestinationMapData():
     new_destination = jsonpickle.decode(session["new_destination"])
-    print("new desintation from load call is", new_destination.name)
-    print("session is new desitiaotn is", session["is_new_destination"])
     if isinstance(new_destination, Home):
         session["is_new_destination"] = False
         return None
