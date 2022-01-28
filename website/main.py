@@ -184,6 +184,7 @@ def receiveDayStartTime():
         hour = int(start_time.split(":")[0])
         minute = int(start_time.split(":")[1])
         start_time = datetime.time(hour, minute)
+        print("start time is created", start_time)
         session["start_time"] = jsonpickle.encode(start_time)
     return jsonify({'result': 'Success!'})
 
@@ -196,6 +197,7 @@ def receiveDayEndTime():
         hour = int(end_time.split(":")[0])
         minute = int(end_time.split(":")[1])
         end_time = datetime.time(hour, minute)
+        print("end time is created", end_time)
         session["end_time"] = jsonpickle.encode(end_time)
     return jsonify({'result': 'Success!'})
 

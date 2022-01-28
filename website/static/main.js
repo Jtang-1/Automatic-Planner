@@ -165,12 +165,25 @@ if (localStorage.getItem('visiting_area_exists')){
 if(localStorage.getItem('start_date')){
     date = localStorage.getItem('start_date')
     document.getElementById("start_date_input").value = reformatIsoDate(date);
+    let start_date = JSON.stringify({
+                    "start_date":date
+                    });
+   setTimeout(function(){
+        sendInfo(start_date, "/receiveStartDate")
+        }, 0);
 }
 
 //if end date exists
 if(localStorage.getItem('end_date')){
     date = localStorage.getItem('end_date')
     document.getElementById("end_date_input").value = reformatIsoDate(date);
+    let end_date = JSON.stringify({
+                    "end_date":date
+                    });
+    setTimeout(function(){
+        sendInfo(end_date, "/receiveEndDate")
+        }, 250);
+
 }
 
 //if home exists
@@ -185,12 +198,26 @@ if (localStorage.getItem('home_exists')){
 if (localStorage.getItem('leave_time')){
     leave_time = localStorage.getItem("leave_time");
     document.getElementById("leave_time_input").value = leave_time;
+    console.log("in leave time exists value is", leave_time)
+    let leave_time_json = JSON.stringify({
+        "leave_time":leave_time
+        });
+    setTimeout(function(){
+        sendInfo(leave_time_json, "/receiveDayStartTime")
+        }, 500);
 }
 
 //if return time exists
 if (localStorage.getItem('return_time')){
     return_time = localStorage.getItem("return_time");
     document.getElementById("return_time_input").value = return_time;
+    console.log("in return time exists value is", return_time)
+    let return_time_json = JSON.stringify({
+                    "return_time":return_time
+                    });
+    setTimeout(function(){
+        sendInfo(return_time_json, "/receiveDayEndTime");
+        }, 750);
 }
 
 function reformatIsoDate(date){
