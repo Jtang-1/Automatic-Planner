@@ -260,21 +260,21 @@ def results():
     print("session[inputs changed] is", session["inputs_changed"])
     return render_template("results.html", itinerary=jsonpickle.decode(session["itinerary"]))
 
-
-@app.route("/results_test", methods=["GET", "POST"])
-def results_test():
-    start_date_test = datetime.datetime(2022, 12, 2)
-    end_date_test = datetime.datetime(2022, 12, 6)
-    start_time_test = datetime.time(4)
-    end_time_test = datetime.time(18)
-    print("checkbox value is", request.form.get("drivingAllowance"))
-    if request.form.get("drivingAllowance") == "avoidDriving":
-        session["driving_allowance"] = False
-    else:
-        session["driving_allowance"] = True
-    trip_itinerary = create_trip_itinerary_test(start_date_test,end_date_test, start_time_test, end_time_test )
-    trip_itinerary = shortest_path.create_itinerary(trip_itinerary)
-    return render_template("results.html", itinerary=trip_itinerary)
+#
+# @app.route("/results_test", methods=["GET", "POST"])
+# def results_test():
+#     start_date_test = datetime.datetime(2022, 12, 2)
+#     end_date_test = datetime.datetime(2022, 12, 15)
+#     start_time_test = datetime.time(4)
+#     end_time_test = datetime.time(18)
+#     print("checkbox value is", request.form.get("drivingAllowance"))
+#     if request.form.get("drivingAllowance") == "avoidDriving":
+#         session["driving_allowance"] = False
+#     else:
+#         session["driving_allowance"] = True
+#     trip_itinerary = create_trip_itinerary_test(start_date_test,end_date_test, start_time_test, end_time_test )
+#     trip_itinerary = shortest_path.create_itinerary(trip_itinerary)
+#     return render_template("results.html", itinerary=trip_itinerary)
 
 
 @app.route("/removeLocation", methods=["POST"])
@@ -386,8 +386,8 @@ def create_places_test():
     # Hmart_details = {'name': 'H Mart San Francisco', 'place_id': 'ChIJ7aBXZ6F9j4ARIwdM6ks0JgE', 'formatted_address': '3995 Alemany Blvd, San Francisco, CA 94132, USA', 'type': ['grocery_or_supermarket', 'food', 'point_of_interest', 'store', 'establishment'], 'opening_hours': {'open_now': False, 'periods': [{'close': {'day': 0, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 0, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 1, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 1, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 2, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 2, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 3, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 3, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 4, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 4, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 5, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 5, 'time': '0800', 'hours': 8, 'minutes': 0}}, {'close': {'day': 6, 'time': '2200', 'hours': 22, 'minutes': 0}, 'open': {'day': 6, 'time': '0800', 'hours': 8, 'minutes': 0}}], 'weekday_text': ['Monday: 8:00 AM – 10:00 PM', 'Tuesday: 8:00 AM – 10:00 PM', 'Wednesday: 8:00 AM – 10:00 PM', 'Thursday: 8:00 AM – 10:00 PM', 'Friday: 8:00 AM – 10:00 PM', 'Saturday: 8:00 AM – 10:00 PM', 'Sunday: 8:00 AM – 10:00 PM']}, 'business_status': 'OPERATIONAL'}
 
     Lowell = modify_graph.create_home(Lowell_details)
-    SanTung = modify_graph.create_attraction(SanTung_details, 4)
-    Golden_gate_park = modify_graph.create_attraction(Golden_gate_park_details, 8)
+    SanTung = modify_graph.create_attraction(SanTung_details, 2)
+    Golden_gate_park = modify_graph.create_attraction(Golden_gate_park_details, 20)
     # Twin_peaks = modify_graph.create_attraction(Twin_peaks_details, 1)
     # Lands_end = modify_graph.create_attraction(Lands_end_details, 6)
     # Hmart = modify_graph.create_attraction(Hmart_details, 1)

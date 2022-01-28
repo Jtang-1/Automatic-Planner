@@ -89,6 +89,9 @@
     <form action ="/" method = "GET">
         <button id = "reviseLocationsButton"> Revise Locations </button>
     </form>
+    <table style="width:100%">
+        <tr>
+            <td>
     <div id = "dayItineraryBlock">
         {% for day_itinerary in itinerary.days_itinerary.values() %}
         {% if day_itinerary.is_empty() == false %}
@@ -147,16 +150,35 @@
 
     </div>
 
-    <div id="map"></div>
-
     <div id="unvisitedPlacesBlock">
         <h4> Unvisted Place(s)</h4>
+
         {% for location in itinerary.nonvisted_locations %}
         <ul>
+            <div class="locationHeader">
+            <li> <div class="locationName"> {{location.name}}</div>
+                <div class = "visitHours">
+                {% if location.visit_minutes > 60 %}
+                    {{location.visit_minutes/60}} hrs
+                {% else %}
+                    {{location.visit_minutes/60}} hr
+                {% endif %}
+                </div>
+            </li>
         </ul>
-        {% endfor %}
-    <script src="{{url_for('static', filename='results.js')}}"> defer></script>
+            {% endfor %}
+        </div>
     </div>
+            </td>
+            <td>
+    <div id="sticky">
+        <div id="map"></div>
+    </div>
+            </td>
+        </tr>
+    </table>
+
+    <script src="{{url_for('static', filename='results.js')}}"> defer></script>
 
 </body>
 </html>

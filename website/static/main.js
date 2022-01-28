@@ -170,7 +170,7 @@ if(localStorage.getItem('start_date')){
                     });
    setTimeout(function(){
         sendInfo(start_date, "/receiveStartDate")
-        }, 0);
+        }, 500);
 }
 
 //if end date exists
@@ -182,7 +182,7 @@ if(localStorage.getItem('end_date')){
                     });
     setTimeout(function(){
         sendInfo(end_date, "/receiveEndDate")
-        }, 250);
+        }, 1500);
 
 }
 
@@ -204,7 +204,7 @@ if (localStorage.getItem('leave_time')){
         });
     setTimeout(function(){
         sendInfo(leave_time_json, "/receiveDayStartTime")
-        }, 500);
+        }, 1500);
 }
 
 //if return time exists
@@ -217,7 +217,7 @@ if (localStorage.getItem('return_time')){
                     });
     setTimeout(function(){
         sendInfo(return_time_json, "/receiveDayEndTime");
-        }, 750);
+        }, 2000);
 }
 
 function reformatIsoDate(date){

@@ -427,7 +427,7 @@
             {% if location.place_type != "home" %}
                 <li class="location_block" id="{{loop.index0}}">
                     <div class="location">
-                    <option class="locationName" id="{{place_id}}">{{location_name}}</option>
+                    <div class="locationName" id="{{place_id}}">{{location_name}}</div>
                     {% if location.visit_minutes != None %}
                         {% if location.visit_minutes > 60 %}
                             {{location.visit_minutes/60}} hrs
