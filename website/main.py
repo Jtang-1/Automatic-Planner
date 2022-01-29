@@ -146,7 +146,8 @@ def removeHome():
 @app.route("/receiveStartDate", methods=["POST"])
 def receiveStartDate():
     if request.method == "POST":
-        record_inputs_changed()
+        if "start_date" not in session:
+            record_inputs_changed()
         start_date = request.get_json(force=True)["start_date"]
         year = int(start_date.split("-")[0])
         month = int(start_date.split("-")[1])
@@ -165,7 +166,8 @@ def loadStartDate():
 @app.route("/receiveEndDate", methods=["POST"])
 def receiveEndDate():
     if request.method == "POST":
-        record_inputs_changed()
+        if "end_date" not in session:
+            record_inputs_changed()
         end_date = request.get_json(force=True)["end_date"]
         year = int(end_date.split("-")[0])
         month = int(end_date.split("-")[1])
@@ -185,7 +187,8 @@ def loadEndDate():
 @app.route("/receiveDayStartTime", methods=["POST"])
 def receiveDayStartTime():
     if request.method == "POST":
-        record_inputs_changed()
+        if "start_time" not in session:
+            record_inputs_changed()
         start_time = request.get_json(force=True)["leave_time"]
         hour = int(start_time.split(":")[0])
         minute = int(start_time.split(":")[1])
@@ -198,7 +201,8 @@ def receiveDayStartTime():
 @app.route("/receiveDayEndTime", methods=["POST"])
 def receiveDayEndTime():
     if request.method == "POST":
-        record_inputs_changed()
+        if "end_time" not in session:
+            record_inputs_changed()
         end_time = request.get_json(force=True)["return_time"]
         hour = int(end_time.split(":")[0])
         minute = int(end_time.split(":")[1])
@@ -312,6 +316,7 @@ def getLocationIndex():
     return jsonify({'result': 'Success!', 'index': place_id_index})
 
 def record_inputs_changed():
+    print("inputs were changed")
     session["inputs_changed"] = True
 
 def process_place(new_place: Place):
