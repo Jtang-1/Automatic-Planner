@@ -1,8 +1,10 @@
 from helpers import *
-import config
+# import config
+import os
+
 import requests
 
-api_key = config.api_key
+api_key = os.environ["AUTOMATIC_PLANNER_GOOGLE_API_KEY"]
 data_type = 'json'
 language = "en"
 fields = "name,formatted_address,type,opening_hours,business_status"

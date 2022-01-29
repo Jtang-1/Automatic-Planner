@@ -1,12 +1,13 @@
 import copy
-import config
+# import config
+import os
 import place_model.google_map_places as places_api
 from helpers import *
 from place_model.place import Place
 # Mcdonald Place_ID ChIJHZJ7UqHd3IARXzrKFEIBFyk
 # Starbucks Place_ID ChIJzUGCDNXc3IAR4l4UZu6QGLU
 import datetime
-api_key = config.api_key
+api_key = os.environ.get("AUTOMATIC_PLANNER_GOOGLE_API_KEY")
 data_type = 'json'
 language = 'en'
 
