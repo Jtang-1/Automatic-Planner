@@ -20,7 +20,7 @@ body
     padding: 0px;
     background-color: #F3EFE0;
     height:100%;
-
+    width: 100%;
 }
 
 header
@@ -51,16 +51,27 @@ header h1{
     color: #F3EFE0;
 }
 
-html,
+html{
+    height: 100%;
+    width: 100%;
+}
+
 #locations,
 #details{
     height:100%;
+
 }
 
 #visitingAreaName,
 #home_name{
   font-weight: bold;
 }
+
+#start_date_input,
+#end_date_input{
+    cursor: pointer;
+}
+
 #visiting_area_div,
 #visiting_dates_div,
 #home_time_form{
@@ -206,4 +217,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     border-radius: 4px;
     font-size: 14px;
     font-weight: bold;
+}
+
+img#loading{
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 1000;
+    margin-top: -150px;
+    margin-left: -150px;
+    width: 300px;
+    cursor: wait;
 }

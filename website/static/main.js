@@ -182,7 +182,7 @@ if(localStorage.getItem('end_date')){
                     });
     setTimeout(function(){
         sendInfo(end_date, "/receiveEndDate")
-        }, 1500);
+        }, 1000);
 
 }
 
@@ -262,14 +262,25 @@ visiting_area_form.addEventListener('submit', function(e){
 
 submitScheduleForm.addEventListener('submit', function(e){
     e.preventDefault();
+    document.querySelectorAll("body :not(#loading)")
+        .forEach(element => element.style.filter="blur(1px)");
+    document.getElementById("loading").style.display="block";
+
     $.ajax({
         url:"/results",
         type: "POST",
         success: function(){
-            location.href = 'results'
+            location.href = 'results';
         },
         error: function(xhr, status, error){
             alert("All fields aren't filled out or departure time is in the past")
+            document.getElementById("loading").style.display="none";
+            document.querySelectorAll("body :not(#loading)")
+                .forEach(element => element.style.filter="blur(0px)");
         }
     });
 });
+
+function loadScreen(){
+    document.getElementById("loading").style.display = "block";
+}
