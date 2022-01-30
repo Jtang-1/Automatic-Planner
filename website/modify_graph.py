@@ -29,7 +29,7 @@ def create_attraction(place_details, visit_hours):
     lng = key_value("geometry", place_details)["location"]["lng"]
     lat = key_value("geometry", place_details)["location"]["lat"]
     visit_minutes = visit_hours * 60
-    print("This place is created:", place_details["name"])
+    # print("This place is created:", place_details["name"])
     return Attraction(place_details["place_id"], place_details["name"],lng, lat, place_type,
                       opening_hours, business_status, visit_minutes)
 

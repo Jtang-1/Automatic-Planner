@@ -61,7 +61,7 @@
             });
 
             if (props.icon){
-                console.log("in icon")
+<!--                console.log("in icon")-->
                 marker.setIcon(props.icon);
             }
             if (props.content){
@@ -72,7 +72,7 @@
                 marker.addListener('click', function(){
                     infoWindow.open(googleMapDisplayObject, marker);
                 });
-            console.log("Added to marker")
+<!--            console.log("Added to marker")-->
            }
            return marker
         }

@@ -4,13 +4,13 @@ const locations = document.querySelector("ol")
 //Remove Place
 addGlobalEventListener('click', "button", e => {
     const parent = e.target.parentNode
-    console.log("parent class name is", parent.className)
+//    console.log("parent class name is", parent.className)
     if(parent.className === 'location_block'){
     locationNameElement = parent.querySelector(".locationName")
     locationName = locationNameElement.textContent
     place_id = locationNameElement.id
-    console.log("locationName is", locationName)
-    console.log("location PlaceID is", place_id)
+//    console.log("locationName is", locationName)
+//    console.log("location PlaceID is", place_id)
     let placeIdJSON = JSON.stringify({
         "place_ID":place_id
         });
@@ -26,10 +26,10 @@ addGlobalEventListener('click', "button", e => {
 
 //Show marker on map when location is clicked
 addGlobalEventListener('click', ".locationName", e => {
-    console.log("clicked")
+//    console.log("clicked")
     locationNameElement = e.target
     locationName = locationNameElement.textContent
-    console.log("event listener for marker location name is", locationName)
+//    console.log("event listener for marker location name is", locationName)
     place_id = locationNameElement.id
     let placeIdJSON = JSON.stringify({
         "place_ID":place_id
@@ -39,8 +39,8 @@ addGlobalEventListener('click', ".locationName", e => {
 
 
 function removeMarker(jsonResponse){
-    console.log('remove marker json response is', jsonResponse);
-    console.log('index to remove is', jsonResponse["index"]);
+//    console.log('remove marker json response is', jsonResponse);
+//    console.log('index to remove is', jsonResponse["index"]);
     index = jsonResponse["index"];
     markers[index].setMap(null);
     markers.splice(index, 1);
@@ -48,10 +48,10 @@ function removeMarker(jsonResponse){
 
 function displayMarkerContent(jsonResponse){
     index = jsonResponse["index"];
-    console.log("display marker index type is", typeof index)
+//    console.log("display marker index type is", typeof index)
     interested_marker = markers[index]
-    console.log("interseted marker content is", interested_marker.content)
-    console.log("content type is", typeof interested_marker.content)
+//    console.log("interseted marker content is", interested_marker.content)
+//    console.log("content type is", typeof interested_marker.content)
     var infoWindow = new google.maps.InfoWindow({
                         content:interested_marker.getTitle()
                      });
@@ -71,13 +71,13 @@ function sendPlaceInfo(place,url,callback){
             });
         const request = new XMLHttpRequest();
         request.open("POST", url, true);
-        console.log("in sendPlaceInfo");
+//        console.log("in sendPlaceInfo");
         request.onreadystatechange = () => {
             if (request.readyState==4){
-                console.log("SendPlaceInfo Loaded", request.response);
+//                console.log("SendPlaceInfo Loaded", request.response);
                 if (typeof callback == 'function'){
                     callback();
-                    console.log("send Place info callback called");
+//                    console.log("send Place info callback called");
                 }
                 $("#locations_block").load(" #locations_block > *");
             }
@@ -92,18 +92,18 @@ function sendInfo(info, url, callback){
     request.onreadystatechange = () => {
         if(request.readyState==4){
             var jsonResponse = JSON.parse(request.response)
-            console.log("SendInfo Loaded", jsonResponse);
+//            console.log("SendInfo Loaded", jsonResponse);
             if (typeof callback == 'function'){
                 callback(jsonResponse);
-                console.log("send info callback called")
+//                console.log("send info callback called")
             }
             $("#locations_block").load(" #locations_block > *");
-            console.log("after refresh",jsonResponse)
+//            console.log("after refresh",jsonResponse)
             return jsonResponse
         }
     };
-    console.log("time in sendInfo is", info)
-    console.log("type in send info is", typeof info)
+//    console.log("time in sendInfo is", info)
+//    console.log("type in send info is", typeof info)
     request.send(info)
 }
 
@@ -169,7 +169,7 @@ if(localStorage.getItem('start_date')){
                     "start_date":date
                     });
    setTimeout(function(){
-        sendInfo(start_date, "/receiveStartDate")
+        sendInfo(start_date, "/receiveExistingStartDate")
         }, 500);
 }
 
@@ -181,7 +181,7 @@ if(localStorage.getItem('end_date')){
                     "end_date":date
                     });
     setTimeout(function(){
-        sendInfo(end_date, "/receiveEndDate")
+        sendInfo(end_date, "/receiveExistingEndDate")
         }, 1000);
 
 }
@@ -198,12 +198,12 @@ if (localStorage.getItem('home_exists')){
 if (localStorage.getItem('leave_time')){
     leave_time = localStorage.getItem("leave_time");
     document.getElementById("leave_time_input").value = leave_time;
-    console.log("in leave time exists value is", leave_time)
+//    console.log("in leave time exists value is", leave_time)
     let leave_time_json = JSON.stringify({
         "leave_time":leave_time
         });
     setTimeout(function(){
-        sendInfo(leave_time_json, "/receiveDayStartTime")
+        sendInfo(leave_time_json, "/receiveExistingDayStartTime")
         }, 1500);
 }
 
@@ -211,12 +211,12 @@ if (localStorage.getItem('leave_time')){
 if (localStorage.getItem('return_time')){
     return_time = localStorage.getItem("return_time");
     document.getElementById("return_time_input").value = return_time;
-    console.log("in return time exists value is", return_time)
+//    console.log("in return time exists value is", return_time)
     let return_time_json = JSON.stringify({
                     "return_time":return_time
                     });
     setTimeout(function(){
-        sendInfo(return_time_json, "/receiveDayEndTime");
+        sendInfo(return_time_json, "/receiveExistingDayEndTime");
         }, 2000);
 }
 
@@ -243,19 +243,19 @@ function removeAllDestinations(){
 }
 
 destination_form.addEventListener('submit', function(e){
-    console.log("in prevent default")
+//    console.log("in prevent default")
     e.preventDefault();
     sendDestination();
 });
 
 home_form.addEventListener('submit', function(e){
-    console.log("in prevent default")
+//    console.log("in prevent default")
     e.preventDefault();
     sendHome();
 });
 
 visiting_area_form.addEventListener('submit', function(e){
-    console.log("in prevent default")
+//    console.log("in prevent default")
     e.preventDefault();
     sendVisitingArea();
 });
@@ -273,7 +273,7 @@ submitScheduleForm.addEventListener('submit', function(e){
             location.href = 'results';
         },
         error: function(xhr, status, error){
-            alert("All fields aren't filled out or departure time is in the past")
+            alert("All fields aren't filled out or departure time is in the past (choose a later start time or date)")
             document.getElementById("loading").style.display="none";
             document.querySelectorAll("body :not(#loading)")
                 .forEach(element => element.style.filter="blur(0px)");

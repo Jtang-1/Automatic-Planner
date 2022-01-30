@@ -22,10 +22,10 @@ def create_itinerary(itinerary: TripItinerary) -> TripItinerary:
     itinerary_added_places = {graph.home}
     for day_plan in itinerary.days_itinerary.values():
         # print("day_plan day length is", day_plan.day_minutes / 60)
-        print("places in itinerary before add day itinerary", list(location.name for location in itinerary_added_places))
+        # print("places in itinerary before add day itinerary", list(location.name for location in itinerary_added_places))
         itinerary.add_day_itinerary(create_day_itinerary(day_plan))
-        print("in create_itinerary")
-        print("visited places after add_day_itinerary is", list(location.name for location in itinerary_added_places))
+        # print("in create_itinerary")
+        # print("visited places after add_day_itinerary is", list(location.name for location in itinerary_added_places))
         if is_all_visited():
             break
     itinerary.add_nonvisited_locations(graph.vertices ^ itinerary_added_places)
@@ -47,20 +47,20 @@ def day_shortest_route(day_plan: DayItinerary):
     global has_not_opened_places
     path_connections = graph.num_vertices - len(itinerary_added_places)
     total_path_connections = int((path_connections * (path_connections + 1)) / 2)
-    print("total path connections is", total_path_connections)
+    # print("total path connections is", total_path_connections)
     current_place = day_plan.scheduled_locations[-1].base_place
     next_place = closest_unvisited_not_home_neighbor(current_place)
     for _ in range(total_path_connections):
         if is_all_skipped_or_added_to_day_itinerary() or next_place is None:
             break
         if should_visit(day_plan, current_place, next_place):
-            print(next_place.name, "will be added to day_shortest_route. in day_shortest_route")
+            # print(next_place.name, "will be added to day_shortest_route. in day_shortest_route")
             add_location_to_day_itinerary(day_plan, current_place, next_place)
-            print(next_place.name, "has been added to day_shortest_route. in day_shortest_route")
+            # print(next_place.name, "has been added to day_shortest_route. in day_shortest_route")
             has_not_opened_places = set()
         else:
             if only_has_not_opened_places_remain():
-                print("day_shortest_route,in only has not opened places remaining")
+                # print("day_shortest_route,in only has not opened places remaining")
                 next_place = find_has_not_opened_place_minus_wait_and_travel_time(day_plan)
                 if next_place is None:
                     break
@@ -99,7 +99,7 @@ def closest_unvisited_not_home_neighbor(node: Place) -> Union[Place, Attraction]
 
 def farthest_not_home_neighbor(node: Place) -> Union[Place, Attraction]:
     neighbors_edges = graph.neighbors_edges(node)
-    print("in farthest_not_home_neighbor")
+    # print("in farthest_not_home_neighbor")
     farthest_neighbor_dist = 0
     farthest_neighbor = None
     for edge in neighbors_edges:
@@ -129,14 +129,14 @@ def add_first_destination(day_plan: DayItinerary):
     for _ in range(total_path_connections):
         if is_all_skipped_or_added_to_day_itinerary() or farthest_neighbor is None:
             break
-        print("in start of for loop of add_first_destination, farthest neighbor is", farthest_neighbor.name)
+        # print("in start of for loop of add_first_destination, farthest neighbor is", farthest_neighbor.name)
         if should_visit(day_plan, home, farthest_neighbor):
-            print("location has been added to first destination")
+            # print("location has been added to first destination")
             day_plan.scheduled_home.set_leave_time(day_plan.current_time)
             add_location_to_day_itinerary(day_plan, home, farthest_neighbor)
             break
         elif only_has_not_opened_places_remain():
-            print("in only has not opened places remaining")
+            # print("in only has not opened places remaining")
             day_plan.scheduled_home.set_leave_time(day_plan.current_time)
             farthest_neighbor = find_has_not_opened_place_minus_wait_and_travel_time(day_plan)
         else:
@@ -163,14 +163,14 @@ def should_visit(day_plan: DayItinerary, current_place: Place, next_place: Attra
     global has_not_opened_places
     day_minutes = day_plan.day_minutes
     current_day_of_week = day_plan.day_of_week
-    print("checking if should visit", next_place.name)
+    # print("checking if should visit", next_place.name)
     if next_place.is_closed_on(current_day_of_week):
-        print("did not visit", next_place.name, "it is closed")
+        # print("did not visit", next_place.name, "it is closed")
         skipped_places.add(next_place)
         return False
 
     if day_plan.minutes_spent + next_place.visit_minutes > day_minutes:
-        print("did not visit", next_place.name, "visit exceeds allocated day time, closed before end of visit")
+        # print("did not visit", next_place.name, "visit exceeds allocated day time, closed before end of visit")
         skipped_places.add(next_place)
         return False
     # Layered checks to avoid excess API transportation time calls
@@ -179,7 +179,7 @@ def should_visit(day_plan: DayItinerary, current_place: Place, next_place: Attra
                                          next_place_transport_mode)
     # Check place is opened by the time you arrive
     if not is_open_after_transport_start_of_visit(day_plan, next_place, next_place_transport_minutes):
-        print("place added to not open", next_place.name)
+        # print("place added to not open", next_place.name)
         if is_has_not_opened_yet(day_plan, next_place, next_place_transport_minutes) and next_place not in has_not_opened_places:
             has_not_opened_places.add(next_place)
         # Completely closed for the day
@@ -190,7 +190,7 @@ def should_visit(day_plan: DayItinerary, current_place: Place, next_place: Attra
     if day_plan.minutes_spent + next_place.visit_minutes + next_place_transport_minutes > day_minutes \
             or not is_open_after_transport_end_of_visit(day_plan, next_place, next_place_transport_minutes):
         skipped_places.add(next_place)
-        print("did not visit", next_place.name, "not enough time to visit after transport")
+        # print("did not visit", next_place.name, "not enough time to visit after transport")
 
         return False
     home_transport_minutes, next_place_transport_mode = get_shortest_transportation(day_plan, next_place).values()
@@ -216,7 +216,7 @@ def is_open_after_transport_start_of_visit(day_plan: DayItinerary, next_place: A
     current_time = day_plan.current_date_time.time()
     current_day_of_week = day_plan.day_of_week
     time_after_transport_minutes = time_to_minutes(current_time) + next_place_transport_minutes
-    print("next_place.open_times[current_day_of_week] is ", next_place.open_times[current_day_of_week])
+    # print("next_place.open_times[current_day_of_week] is ", next_place.open_times[current_day_of_week])
     next_place_open_close_time = zip(next_place.open_times[current_day_of_week], next_place.close_times[current_day_of_week])
     for next_place_open_time, next_place_close_time in next_place_open_close_time:
         if time_to_minutes(next_place_open_time) <= time_after_transport_minutes<= time_to_minutes(next_place_close_time):
@@ -268,14 +268,14 @@ def add_location_to_day_itinerary(day_plan: DayItinerary, current_place: Attract
 def add_transport_to_day_itinerary(day_plan: DayItinerary, current_place: Place, next_place: Place):
     transport_time, transport_mode = get_next_place_transport_info(day_plan, next_place).values()
     modify_graph.add_edge_transport_time(current_place, next_place, transport_time, transport_mode)
-    print("current place is", current_place.name)
-    print("next_place is", next_place.name)
-    print("transport time is", transport_time)
+    # print("current place is", current_place.name)
+    # print("next_place is", next_place.name)
+    # print("transport time is", transport_time)
     day_plan.add_minutes_spent(transport_time)
 
 
 def get_shortest_transportation(day_plan: DayItinerary, next_place: Place) -> {int, str}:
-    print("in get_shortest_transportation")
+    # print("in get_shortest_transportation")
     if day_plan.is_driving_allowed:
         modes = {"driving", "transit"}
     else:
@@ -309,10 +309,10 @@ def is_visited(place: Place) -> bool:
 
 
 def is_all_visited() -> bool:
-    print("in is all visited, graph.num_vertices is", graph.num_vertices)
-    print("len of visited places is", len(itinerary_added_places))
-    print("visited places are", itinerary_added_places)
-    print("graph vertices are", graph.vertices)
+    # print("in is all visited, graph.num_vertices is", graph.num_vertices)
+    # print("len of visited places is", len(itinerary_added_places))
+    # print("visited places are", itinerary_added_places)
+    # print("graph vertices are", graph.vertices)
     if graph.num_vertices == len(itinerary_added_places):
         return True
     return False
@@ -341,18 +341,18 @@ def find_has_not_opened_place_minus_wait_and_travel_time(day_plan: DayItinerary)
     current_place = day_plan.scheduled_locations[-1].base_place
     next_place = None
     final_minutes_to_shift = 0
-    print("in find_has_not_opened_place_min_wait_and_travel_time, has_not opened places are", list(location.name for location in has_not_opened_places))
+    # print("in find_has_not_opened_place_min_wait_and_travel_time, has_not opened places are", list(location.name for location in has_not_opened_places))
     for place in has_not_opened_places:
-        print("in for loop of find_has_not_opened_palce_min_wait_and_travel_time, place is", place.name)
+        # print("in for loop of find_has_not_opened_palce_min_wait_and_travel_time, place is", place.name)
         place_transport_minutes, place_transport_mode = get_next_place_transport_info(day_plan, place).values()
-        print("place_transport_minutes", place_transport_minutes)
-        print("time_to_minutes(day_plan.current_time)", time_to_minutes(day_plan.current_time))
+        # print("place_transport_minutes", place_transport_minutes)
+        # print("time_to_minutes(day_plan.current_time)", time_to_minutes(day_plan.current_time))
         for next_place_open_time in place.open_times[current_day_of_week]:
-            print("in find_has_not_opened_place_minus_wait_and_travel_time for loop time_to_minutes(place.open_times[current_day_of_week])",
-                      time_to_minutes(next_place_open_time))
+            # print("in find_has_not_opened_place_minus_wait_and_travel_time for loop time_to_minutes(place.open_times[current_day_of_week])",
+            #           time_to_minutes(next_place_open_time))
             if current_time_minutes + place_transport_minutes < time_to_minutes(next_place_open_time):
-                print("in find_has_not_opened_place_minus_wait_and_travel_time for loop, in if time_to_minutes(place.open_times[current_day_of_week])",
-                      time_to_minutes(next_place_open_time))
+                # print("in find_has_not_opened_place_minus_wait_and_travel_time for loop, in if time_to_minutes(place.open_times[current_day_of_week])",
+                #       time_to_minutes(next_place_open_time))
                 wait_and_travel_time = time_to_minutes(next_place_open_time) + \
                                        place_transport_minutes - \
                                        current_time_minutes
@@ -361,7 +361,7 @@ def find_has_not_opened_place_minus_wait_and_travel_time(day_plan: DayItinerary)
                 break
         #  shift day time to next open place - transporation time ? (may not pass if should visit - may have rounding error.. of open after current time + transport)
         day_plan.add_minutes_spent(minutes_to_shift)
-        print("wait_and_travel_time is", wait_and_travel_time, "shortest time is", shortest_time, "<?", wait_and_travel_time < shortest_time)
+        # print("wait_and_travel_time is", wait_and_travel_time, "shortest time is", shortest_time, "<?", wait_and_travel_time < shortest_time)
         if wait_and_travel_time < shortest_time and should_visit(day_plan, current_place, place):
             next_place = place
             shortest_time = wait_and_travel_time

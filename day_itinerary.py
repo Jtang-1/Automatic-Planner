@@ -71,12 +71,12 @@ class DayItinerary:
         self.transport.append(transport)
 
     def transport_info_from(self, scheduled_origin: Place) -> (int, str):
-        print("self.transport is", self.transport)
+        # print("self.transport is", self.transport)
         for count, scheduled_location in enumerate(self.scheduled_locations):
             is_last_location = (count == (len(self.scheduled_locations) - 1))
             if scheduled_location == scheduled_origin and not is_last_location:
                 destination = self.scheduled_locations[count + 1].base_place
-                print("not last location")
+                # print("not last location")
                 break
             elif is_last_location:
                 return None, None

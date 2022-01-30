@@ -26,7 +26,7 @@ def create_open_close_times(opening_hours, state: str = "open") -> {int: [dateti
             state_time = datetime.time(state_time_hour, state_time_minute)
         day_of_week_count = open_day + 1
         state_times[open_day].append(state_time)
-    print("final statetime is", state_times)
+    # print("final statetime is", state_times)
 
     return state_times
 

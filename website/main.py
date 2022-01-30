@@ -26,8 +26,11 @@ app.secret_key = "Ihopethisgetsthisstupidthingworking"
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_TYPE'] = 'redis'
 app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_REDIS'] = redis.from_url(os.environ['REDIS_URL'])
-# redis local url 'redis://localhost:6379'
+# app.config['SESSION_REDIS'] = redis.from_url(os.environ['REDIS_URL'])
+
+#local development
+app.config['SESSION_REDIS'] = redis.from_url('redis://localhost:6379')
+
 server_session = Session(app)
 
 @app.before_request
@@ -56,7 +59,7 @@ def home():
     if "place_visiting_lat_lng" not in session:
         session["place_visiting_lat_lng"] = {"lat": None, "lng": None}
 
-    print("in home, outside ifs")
+    # print("in home, outside ifs")
 
     return render_template("home.html", locations=zip(session["location_name"], session["place_id"], locations),
                            map_locations=zip(session["location_name"], session["place_id"], locations),
@@ -68,15 +71,15 @@ def home():
 @app.route("/receiveDestination", methods=["POST"])
 def receiveDestination():
     if request.method == "POST":
-        print("in receive destination")
+        # print("in receive destination")
         record_inputs_changed()
         place_details = request.get_json(force=True)
-        print("place_details is", place_details)
+        # print("place_details is", place_details)
         new_place = modify_graph.create_attraction(place_details, session["visit_hours"])
-        print("session value of new desitation in receive Destination is,", session["is_new_destination"])
-        print('place id session contains', session["place_id"])
-        print('new place place id is', new_place.place_id)
-        print('is new place place id in session', new_place.place_id in session["place_id"])
+        # print("session value of new desitation in receive Destination is,", session["is_new_destination"])
+        # print('place id session contains', session["place_id"])
+        # print('new place place id is', new_place.place_id)
+        # print('is new place place id in session', new_place.place_id in session["place_id"])
         if new_place.place_id in session["place_id"]:
             session["is_new_destination"] = False
         if new_place.place_id not in session["place_id"]:
@@ -92,7 +95,7 @@ def receiveDestination():
 
 @app.route("/loadNewDestinationMapData", methods=["GET"])
 def loadNewDestinationMapData():
-    print("session is new destionation value is", session["is_new_destination"])
+    # print("session is new destionation value is", session["is_new_destination"])
     new_destination = jsonpickle.decode(session["new_destination"])
     if isinstance(new_destination, Home):
         return None
@@ -101,7 +104,7 @@ def loadNewDestinationMapData():
     else:
         new_destination_name = new_destination.name
         new_destination_lat_lng = [new_destination.lat, new_destination.lng]
-        print("new desintation from load call is", new_destination.name)
+        # print("new desintation from load call is", new_destination.name)
         return jsonify(new_destination_name=new_destination_name,
                        new_destination_lat_lng=new_destination_lat_lng)
 
@@ -112,7 +115,7 @@ def receiveVisitHours():
         record_inputs_changed()
         visit_hours = request.get_json(force=True)
         session["visit_hours"] = visit_hours
-        print('in receiveVisit Hours')
+        # print('in receiveVisit Hours')
     return jsonify({'result': 'Success!'})
 
 
@@ -122,7 +125,7 @@ def receiveHome():
         record_inputs_changed()
         place_details = request.get_json(force=True)
         new_home = modify_graph.create_home(place_details)
-        print("in receive home, place id of home is", new_home.place_id)
+        # print("in receive home, place id of home is", new_home.place_id)
         process_place(new_home)
         session["places"].append(jsonpickle.encode(new_home, keys=True))
     return jsonify({'result': 'Success!'})
@@ -134,13 +137,13 @@ def loadHomeMapData():
         session_home = jsonpickle.decode(session["home"])
         home_name = session_home.name
         home_lat_lng = [session_home.lat, session_home.lng]
-        print(home_lat_lng, "this is home_lat_lng")
+        # print(home_lat_lng, "this is home_lat_lng")
         return jsonify(home_name=home_name, home_lat_lng=home_lat_lng)
 
 @app.route("/removeHome", methods=["POST"])
 def removeHome():
     if request.method == "POST":
-        print("in session home is", session["home"])
+        # print("in session home is", session["home"])
         if session["home"]:
             home_place_id = jsonpickle.decode(session["home"]).place_id
             home_place_id_index = session["place_id"].index(home_place_id)
@@ -162,6 +165,18 @@ def receiveStartDate():
         session["start_date"] = jsonpickle.encode(start_date)
     return jsonify({'result': 'Success!'})
 
+@app.route("/receiveExistingStartDate", methods=["POST"])
+def receiveExistingStartDate():
+    if request.method == "POST":
+        if "start_date" not in session:
+            record_inputs_changed()
+        start_date = request.get_json(force=True)["start_date"]
+        year = int(start_date.split("-")[0])
+        month = int(start_date.split("-")[1])
+        day = int(start_date.split("-")[2])
+        start_date = datetime.datetime(year, month, day)
+        session["start_date"] = jsonpickle.encode(start_date)
+    return jsonify({'result': 'Success!'})
 
 @app.route("/loadStartDate", methods=["GET"])
 def loadStartDate():
@@ -182,27 +197,45 @@ def receiveEndDate():
         session["end_date"] = jsonpickle.encode(end_date)
     return jsonify({'result': 'Success!'})
 
+@app.route("/receiveExistingEndDate", methods=["POST"])
+def receiveExistingEndDate():
+    if request.method == "POST":
+        end_date = request.get_json(force=True)["end_date"]
+        year = int(end_date.split("-")[0])
+        month = int(end_date.split("-")[1])
+        day = int(end_date.split("-")[2])
+        end_date = datetime.datetime(year, month, day)
+        session["end_date"] = jsonpickle.encode(end_date)
+    return jsonify({'result': 'Success!'})
 
 @app.route("/loadEndDate", methods=["GET"])
 def loadEndDate():
     iso_end_date_str = jsonpickle.decode(session["end_date"]).strftime("%Y-%m-%d")
-    print("iso_end_date_str is", iso_end_date_str)
+    # print("iso_end_date_str is", iso_end_date_str)
     return jsonify(iso_end_date_str=iso_end_date_str)
 
 
 @app.route("/receiveDayStartTime", methods=["POST"])
 def receiveDayStartTime():
     if request.method == "POST":
-        if "start_time" not in session:
-            record_inputs_changed()
+        record_inputs_changed()
         start_time = request.get_json(force=True)["leave_time"]
         hour = int(start_time.split(":")[0])
         minute = int(start_time.split(":")[1])
         start_time = datetime.time(hour, minute)
-        print("start time is created", start_time)
+        # print("start time is created", start_time)
         session["start_time"] = jsonpickle.encode(start_time)
     return jsonify({'result': 'Success!'})
 
+@app.route("/receiveExistingDayStartTime", methods=["POST"])
+def receiveExistingDayStartTime():
+    if request.method == "POST":
+        start_time = request.get_json(force=True)["leave_time"]
+        hour = int(start_time.split(":")[0])
+        minute = int(start_time.split(":")[1])
+        start_time = datetime.time(hour, minute)
+        session["start_time"] = jsonpickle.encode(start_time)
+    return jsonify({'result': 'Success!'})
 
 @app.route("/receiveDayEndTime", methods=["POST"])
 def receiveDayEndTime():
@@ -213,18 +246,27 @@ def receiveDayEndTime():
         hour = int(end_time.split(":")[0])
         minute = int(end_time.split(":")[1])
         end_time = datetime.time(hour, minute)
-        print("end time is created", end_time)
+        # print("end time is created", end_time)
         session["end_time"] = jsonpickle.encode(end_time)
     return jsonify({'result': 'Success!'})
 
+@app.route("/receiveExistingDayEndTime", methods=["POST"])
+def receiveExistingDayEndTime():
+    if request.method == "POST":
+        end_time = request.get_json(force=True)["return_time"]
+        hour = int(end_time.split(":")[0])
+        minute = int(end_time.split(":")[1])
+        end_time = datetime.time(hour, minute)
+        session["end_time"] = jsonpickle.encode(end_time)
+    return jsonify({'result': 'Success!'})
 
 @app.route("/receiveVisitingArea", methods=["POST"])
 def receiveVisitingArea():
     if request.method == "POST":
         place_details = request.get_json(force=True)
-        print("place details is", place_details)
+        # print("place details is", place_details)
         session["place_visiting_name"] = place_details["name"]
-        print("session visitng place after change is,", session["place_visiting_name"])
+        # print("session visitng place after change is,", session["place_visiting_name"])
         place_lat_lng = place_details["geometry"]["location"]
         session["place_visiting_lat_lng"] = place_lat_lng
     return jsonify({'result': 'Success!'})
@@ -238,7 +280,7 @@ def loadVisitingArea():
 @app.route("/results", methods=["GET", "POST"])
 def results():
     if request.method == "POST":
-        print("checkbox value is", request.form.get("drivingAllowance"))
+        # print("checkbox value is", request.form.get("drivingAllowance"))
         if request.form.get("drivingAllowance") == "avoidDriving":
             if "driving_allowance" in session and session["driving_allowance"]:
                 record_inputs_changed()
@@ -247,7 +289,7 @@ def results():
             if "driving_allowance" in session and not session["driving_allowance"]:
                 record_inputs_changed()
             session["driving_allowance"] = True
-        print("were inputs changed?", session["inputs_changed"])
+        # print("were inputs changed?", session["inputs_changed"])
         if session["inputs_changed"]:
             graph = modify_graph.get_graph()
             graph.clear_graph()
@@ -260,20 +302,20 @@ def results():
             session["itinerary"] = jsonpickle.encode(itinerary)
             for day_itinerary in itinerary.days_itinerary.values():
                 current_day_of_week = day_itinerary.day_of_week
-                print("current_day_of_week is", current_day_of_week)
-                print(list([count, location.name, location.visit_minutes, day_itinerary.current_date_time.time(), location.open_times, location.close_times] for count, location in enumerate(day_itinerary.scheduled_locations)))
-                print(list([count, location.name, location.arrive_time, location.visit_minutes, location.leave_time, day_itinerary.current_date_time.time()] for count,location in enumerate(day_itinerary.scheduled_locations)))
-            print("unvisited locations are")
-            print(list([location.name] for location in itinerary.nonvisted_locations))
-            print("itinerary is saved")
-            print("itinerary is", session["itinerary"])
+            #     print("current_day_of_week is", current_day_of_week)
+            #     print(list([count, location.name, location.visit_minutes, day_itinerary.current_date_time.time(), location.open_times, location.close_times] for count, location in enumerate(day_itinerary.scheduled_locations)))
+            #     print(list([count, location.name, location.arrive_time, location.visit_minutes, location.leave_time, day_itinerary.current_date_time.time()] for count,location in enumerate(day_itinerary.scheduled_locations)))
+            # print("unvisited locations are")
+            # print(list([location.name] for location in itinerary.nonvisted_locations))
+            # print("itinerary is saved")
+            # print("itinerary is", session["itinerary"])
             session["inputs_changed"] = False
         return redirect(url_for("results"))
     # fix so saved itinerary is just the needed info, without the objects since objects can't be converted correctly to JSON
     if request.method == "GET":
-        print("in GET of results")
+        # print("in GET of results")
         pass
-    print("session[inputs changed] is", session["inputs_changed"])
+    # print("session[inputs changed] is", session["inputs_changed"])
     return render_template("results.html", itinerary=jsonpickle.decode(session["itinerary"]))
 
 #
@@ -370,9 +412,15 @@ def create_trip_itinerary() -> TripItinerary:
     end_date = jsonpickle.decode(session["end_date"])
     trip_itinerary = TripItinerary(start_date=start_date, end_date=end_date)
     trip_itinerary.set_is_driving_allowed(session["driving_allowance"])
+    print(" start date in session is,", start_date)
+    print("end date in session is,", end_date)
 
     start_time_delta = website_helpers.time_to_minutesdelta(jsonpickle.decode(session["start_time"]))
     end_time_delta = website_helpers.time_to_minutesdelta(jsonpickle.decode(session["end_time"]))
+
+    print("start date time in session is,",trip_itinerary.current_date + start_time_delta)
+    print("end date time in session is,",trip_itinerary.current_date + end_time_delta)
+
 
     for _ in range(trip_itinerary.trip_days):
         start_date_time = trip_itinerary.current_date + start_time_delta

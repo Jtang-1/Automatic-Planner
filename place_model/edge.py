@@ -23,10 +23,10 @@ class Edge:
         self.set_mode_transport_to(destination, transport_mode)
 
     def is_edge_for(self, place1, place2):
-        print("place1 is", place1)
-        print("place2 is", place2)
-        print("self.place1 is", self.place1)
-        print("self.place2 is", self.place2)
+        # print("place1 is", place1)
+        # print("place2 is", place2)
+        # print("self.place1 is", self.place1)
+        # print("self.place2 is", self.place2)
         if self.place1 == place1 or self.place1 == place2:
             if self.place2 == place1 or self.place2 == place2:
                 return True

@@ -25,7 +25,7 @@
         function initDestHomeAutocomplete(visit_place_lat, visit_place_lng){
             destination_autocomplete = createAutocompleteObject("destination_autocomplete",visit_place_lat,visit_place_lng);
 <!--            destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);-->
-            console.log("in initDestHomeAutocomplete", visit_place_lng);
+<!--            console.log("in initDestHomeAutocomplete", visit_place_lng);-->
             home_autocomplete = createAutocompleteObject("home_autocomplete",visit_place_lat,visit_place_lng);
 <!--            home_autocomplete.addListener('place_changed', onHomePlaceChanged);-->
         }
@@ -48,14 +48,14 @@
                 var place = destination_autocomplete.getPlace();
                 if (place.place_id){
                     var form = document.getElementById('destination_form');
-                    console.log("place is", place);
+<!--                    console.log("place is", place);-->
                     var hours = document.getElementById('visit_hours').value;
                     sendInfo(hours,"/receiveVisitHours")
                         setTimeout(function(){
                             sendPlaceInfo(place,"/receiveDestination", addDestinationMarker);
                         }, 250);
                     document.getElementById("destination_autocomplete").value = "";
-                    console.log("form sent");
+<!--                    console.log("form sent");-->
                 }
                 else{
                     alert("Not a valid place.");
@@ -72,7 +72,7 @@
                     destination_name = data["new_destination_name"];
                     destination_lat = data["new_destination_lat_lng"][0];
                     destination_lng = data["new_destination_lat_lng"][1];
-                    console.log("the lat and lng of", destination_name, "is", destination_lat, destination_lng);
+<!--                    console.log("the lat and lng of", destination_name, "is", destination_lat, destination_lng);-->
                     addMarker({coordinates:{lat: destination_lat, lng: destination_lng},
                                 content: destination_name});
                 },
@@ -88,10 +88,10 @@
                 var place = home_autocomplete.getPlace();
                 if (place.place_id){
                     var form = document.getElementById('home_form');
-                    console.log("place is", place);
+<!--                    console.log("place is", place);-->
                     sendPlaceInfo(place,"/receiveHome", loadHome);
                     document.getElementById("home_autocomplete".placeholder = "Enter a place");
-                    console.log("form sent");
+<!--                    console.log("form sent");-->
                 }
                 else{
                     alert("Not a valid place.");
@@ -108,8 +108,8 @@
                     home_name = data["home_name"];
                     home_lat = data["home_lat_lng"][0];
                     home_lng = data["home_lat_lng"][1];
-                    console.log("type of lat is", typeof home_lat)
-                    console.log("the lat and lng of", home_name, "is", home_lat, home_lng);
+<!--                    console.log("type of lat is", typeof home_lat)-->
+<!--                    console.log("the lat and lng of", home_name, "is", home_lat, home_lng);-->
                     localStorage.setItem('home_name', home_name);
                     document.getElementById("home_autocomplete").value = "";
                     hideHomeInput();
@@ -128,10 +128,10 @@
                 var place = visiting_area_autocomplete.getPlace();
                 if (place.place_id){
                     var form = document.getElementById('visiting_area_form');
-                    console.log("place is", place);
+<!--                    console.log("place is", place);-->
                     sendPlaceInfo(place,"/receiveVisitingArea",loadVisitingArea);
                     document.getElementById("visiting_area_autocomplete".placeholder = "Enter a place");
-                    console.log("form sent");
+<!--                    console.log("form sent");-->
                 }
                 else{
                     alert("Not a valid place.");
@@ -147,7 +147,7 @@
                 success: function(data){
                     lat = data["lat"]
                     lng = data["lng"]
-                    console.log("The data is,", lat, "and", lng);
+<!--                    console.log("The data is,", lat, "and", lng);-->
                     localStorage.setItem('visiting_area_lat', lat);
                     localStorage.setItem('visiting_area_lng', lng);
                     initDestHomeAutocomplete(lat,lng);
@@ -169,8 +169,8 @@
                 if(form.getAttribute('eventWithSubmit') == 'true'){
                     evt.preventDefault();
                     if (window.globalVisitingAreaChangedCalledIterator != window.globalVisitingAreaChangedCalledTimes){
-                        console.log("In second IF global tracker", window.globalVisitingAreaChangedCalledTimes)
-                        console.log("In second IF iterator", window.globalVisitingAreaChangedCalledIterator)
+<!--                        console.log("In second IF global tracker", window.globalVisitingAreaChangedCalledTimes)-->
+<!--                        console.log("In second IF iterator", window.globalVisitingAreaChangedCalledIterator)-->
                         window.globalVisitingAreaChangedCalledIterator += 1;
                         return;
                     }
@@ -182,7 +182,7 @@
                             success: function(data){
                                 lat = data["lat"]
                                 lng = data["lng"]
-                                console.log("The data is,", lat, "and", lng);
+<!--                                console.log("The data is,", lat, "and", lng);-->
                                 localStorage.setItem('visiting_area_lat', lat);
                                 localStorage.setItem('visiting_area_lng', lng);
                                 initDestHomeAutocomplete(lat,lng);
@@ -240,7 +240,7 @@
 
         function onStartDateChanged(){
             var date = document.getElementById('start_date_input').value;
-            console.log("start_date is", date)
+<!--            console.log("start_date is", date)-->
             let start_date = JSON.stringify({
                     "start_date":date
                     });
@@ -252,7 +252,7 @@
                     success: function(data){
                         iso_start_date_str = data["iso_start_date_str"]
                         localStorage.setItem('start_date', iso_start_date_str);
-                        console.log("reformatted date is", reformatIsoDate(iso_start_date_str))
+<!--                        console.log("reformatted date is", reformatIsoDate(iso_start_date_str))-->
                         document.getElementById("start_date_input").type ='text';
                         document.getElementById("start_date_input").value = reformatIsoDate(iso_start_date_str);
                     }
@@ -264,7 +264,7 @@
 
         function onEndDateChanged(){
             var date = document.getElementById('end_date_input').value;
-            console.log("end_date is", date)
+<!--            console.log("end_date is", date)-->
             let end_date = JSON.stringify({
                     "end_date":date
                     });
@@ -288,7 +288,7 @@
         function onLeaveTimeChanged(){
             var time = document.getElementById('leave_time_input').value;
             localStorage.setItem("leave_time",time);
-            console.log("leave time is", time)
+<!--            console.log("leave time is", time)-->
             let leave_time = JSON.stringify({
                     "leave_time":time
                     });
@@ -298,7 +298,7 @@
         function onReturnTimeChanged(){
             var time = document.getElementById('return_time_input').value;
             localStorage.setItem("return_time",time);
-            console.log("return time is", time)
+<!--            console.log("return time is", time)-->
             let return_time = JSON.stringify({
                     "return_time":time
                     });
@@ -325,7 +325,7 @@
                 });
 
                 if (props.icon){
-                    console.log("in icon")
+<!--                    console.log("in icon")-->
                     marker.setIcon(props.icon);
                 }
                 if (props.content){
@@ -337,7 +337,7 @@
                         infoWindow.open(googleMapDisplayObject, marker);
                     });
                 markers.push(marker);
-                console.log("Added to marker")
+<!--                console.log("Added to marker")-->
                }
         }
     </script>
