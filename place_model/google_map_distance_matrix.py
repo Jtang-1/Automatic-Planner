@@ -1,5 +1,6 @@
 import copy
 # import config
+
 import os
 import place_model.google_map_places as places_api
 from helpers import *

@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, session, redirect, url_for, j
 from flask_session import Session
 from website import website_helpers
 from datetime import timedelta
+import os
 import secrets
 import copy
 from place_model.place import Place
@@ -24,8 +25,8 @@ app.secret_key = secrets.token_bytes(32)
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_TYPE'] = 'redis'
 app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_REDIS'] = redis.from_url('redis://localhost:6379')
-
+app.config['SESSION_REDIS'] = redis.from_url(os.environ['REDISCLOUD_URL'])
+# redis local url 'redis://localhost:6379'
 server_session = Session(app)
 
 @app.before_request
