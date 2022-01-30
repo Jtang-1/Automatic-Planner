@@ -19,7 +19,8 @@ from place_model import google_map_distance_matrix as dist_matrix
 
 # http://127.0.0.1:5000
 app = Flask(__name__)
-app.secret_key = secrets.token_bytes(32)
+app.secret_key = "Ihopethisgetsthisstupidthingworking"
+# app.secret_key = secrets.token_bytes(32)
 
 #Configure Redis
 app.config['SESSION_PERMANENT'] = True
