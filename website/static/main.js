@@ -121,6 +121,8 @@ function hideVisitingAreaInput()
         $("#visiting_area_display").load(" #visiting_area_display > *");
         document.getElementById("visiting_area_form").style.display="None";
         document.getElementById("visiting_area_display").style.display="block";
+        document.getElementById("home_div").style.display="block";
+        document.getElementById("destination_form").style.display="block";
         }, 700);
 }
 
@@ -129,6 +131,8 @@ function showVisitingAreaInput()
     localStorage.removeItem('visiting_area_exists');
     document.getElementById("visiting_area_form").style.display="block";
     document.getElementById("visiting_area_display").style.display="None";
+    document.getElementById("home_div").style.display="None";
+    document.getElementById("destination_form").style.display="None";
 
 }
 
@@ -251,13 +255,11 @@ destination_form.addEventListener('submit', function(e){
 home_form.addEventListener('submit', function(e){
 //    console.log("in prevent default")
     e.preventDefault();
-    sendHome();
 });
 
 visiting_area_form.addEventListener('submit', function(e){
 //    console.log("in prevent default")
     e.preventDefault();
-    sendVisitingArea();
 });
 
 submitScheduleForm.addEventListener('submit', function(e){

@@ -26,10 +26,10 @@ app.secret_key = "Ihopethisgetsthisstupidthingworking"
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_TYPE'] = 'redis'
 app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_REDIS'] = redis.from_url(os.environ['REDIS_URL'])
+# app.config['SESSION_REDIS'] = redis.from_url(os.environ['REDIS_URL'])
 
-#local development
-# app.config['SESSION_REDIS'] = redis.from_url('redis://localhost:6379')
+# local development
+app.config['SESSION_REDIS'] = redis.from_url('redis://localhost:6379')
 
 server_session = Session(app)
 

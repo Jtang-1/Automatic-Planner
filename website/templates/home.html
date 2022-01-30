@@ -13,6 +13,8 @@
         var iconBase = "https://maps.google.com/mapfiles/kml/"
         function initMap(){
             visiting_area_autocomplete = create_autocomplete_visiting_area_obj("visiting_area_input");
+            visiting_area_autocomplete.addListener('place_changed', sendVisitingArea);
+
             if (localStorage.getItem('visiting_area_exists')){
                 lat = localStorage.getItem('visiting_area_lat');
                 lng = localStorage.getItem('visiting_area_lng');
@@ -27,7 +29,7 @@
 <!--            destination_autocomplete.addListener('place_changed', onDestinationPlaceChanged);-->
 <!--            console.log("in initDestHomeAutocomplete", visit_place_lng);-->
             home_autocomplete = createAutocompleteObject("home_autocomplete",visit_place_lat,visit_place_lng);
-<!--            home_autocomplete.addListener('place_changed', onHomePlaceChanged);-->
+            home_autocomplete.addListener('place_changed', sendHome);
         }
 
         function createGoogleMap(lat,lng){
@@ -357,7 +359,8 @@
         <form id="visiting_area_form"action="/" method="POST">
             <div><label for="visiting_area_input">Where to?</label>
             <input type="text" id="visiting_area_input" style="width:300px" placeholder="e.g. New York, San Francisco, Seattle">
-                <button> Submit </button></div>
+<!--                <button> Submit </button>-->
+            </div>
         </form>
         <div id="visiting_area_display" class="hidden">
             <span>
@@ -381,7 +384,7 @@
         <form id="home_form" action="/" method="POST">
                 <label for="home_autocomplete">Staying at?</label>
                 <input type="text" id="home_autocomplete" style="width:300px">
-                <button> Submit </button>
+<!--                <button> Submit </button>-->
         </form>
 
         <div id="home_value_display" class="hidden">

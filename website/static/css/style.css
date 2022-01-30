@@ -73,8 +73,7 @@ html{
 }
 
 #visiting_area_div,
-#visiting_dates_div,
-#home_time_form{
+#visiting_dates_div{
     margin:5px;
     padding: 8px;
     border: 1px solid #A41623;
@@ -84,14 +83,26 @@ html{
     color: #011627;
 }
 
+#home_time_form{
+    margin:5px;
+    padding: 8px;
+    border: 1px solid #A41623;
+    border-radius: 5px;
+    display: block;
+    text-align: center;
+    width: 500px;
+    color: #011627;
+}
+
 #home_div{
+    display: none;
     margin:5px;
     margin-top: 30px;
     padding: 5px;
     border: 1px solid #A41623;
     border-radius: 5px;
     color: #011627;
-    width:480px;
+    width:420px;
     font-weight: normal;
 
 }
@@ -113,7 +124,7 @@ html{
     border: 1px solid #A41623;
     border-radius: 5px;
     max-width: 700px;
-    display: block;
+    display: none;
     overflow-wrap:break-word;
     word-wrap: break-all;
     white-space:normal;
