@@ -46,6 +46,7 @@ def home():
         session["new_destination"] = None
         session["places"] = []
         session["is_new_destination"] = False
+        print("in home, location name not in session")
         record_inputs_changed()
 
     else:
@@ -53,6 +54,9 @@ def home():
             locations.append(jsonpickle.decode(location, keys=True))
     if "place_visiting_lat_lng" not in session:
         session["place_visiting_lat_lng"] = {"lat": None, "lng": None}
+
+    print("in home, outside ifs")
+
     return render_template("home.html", locations=zip(session["location_name"], session["place_id"], locations),
                            map_locations=zip(session["location_name"], session["place_id"], locations),
                            visit_place_lat=session["place_visiting_lat_lng"]["lat"],
@@ -218,8 +222,8 @@ def receiveVisitingArea():
     if request.method == "POST":
         place_details = request.get_json(force=True)
         print("place details is", place_details)
-        print("visitng place before change is,", session["place_visiting_name"])
         session["place_visiting_name"] = place_details["name"]
+        print("session visitng place after change is,", session["place_visiting_name"])
         place_lat_lng = place_details["geometry"]["location"]
         session["place_visiting_lat_lng"] = place_lat_lng
     return jsonify({'result': 'Success!'})
