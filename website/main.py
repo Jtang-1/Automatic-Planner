@@ -57,8 +57,8 @@ def home():
                            map_locations=zip(session["location_name"], session["place_id"], locations),
                            visit_place_lat=session["place_visiting_lat_lng"]["lat"],
                            visit_place_lng=session["place_visiting_lat_lng"]["lng"],
-                           visit_place=session["place_visiting_name"])
-
+                           visit_place="ARCADIA")
+# session["place_visiting_name"]
 
 @app.route("/receiveDestination", methods=["POST"])
 def receiveDestination():
