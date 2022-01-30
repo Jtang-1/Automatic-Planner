@@ -25,7 +25,7 @@ app.secret_key = secrets.token_bytes(32)
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_TYPE'] = 'redis'
 app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_REDIS'] = redis.from_url(os.environ['REDISCLOUD_URL'])
+app.config['SESSION_REDIS'] = redis.from_url(os.environ['REDIS_URL'])
 # redis local url 'redis://localhost:6379'
 server_session = Session(app)
 
@@ -57,8 +57,8 @@ def home():
                            map_locations=zip(session["location_name"], session["place_id"], locations),
                            visit_place_lat=session["place_visiting_lat_lng"]["lat"],
                            visit_place_lng=session["place_visiting_lat_lng"]["lng"],
-                           visit_place="ARCADIA")
-# session["place_visiting_name"]
+                           visit_place=session["place_visiting_name"])
+
 
 @app.route("/receiveDestination", methods=["POST"])
 def receiveDestination():
