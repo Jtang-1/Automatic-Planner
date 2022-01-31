@@ -163,6 +163,8 @@ function showHomeInput()
 if (localStorage.getItem('visiting_area_exists')){
            document.getElementById("visiting_area_form").style.display="None";
            document.getElementById("visiting_area_display").style.display="block";
+           document.getElementById("home_div").style.display="block";
+           document.getElementById("destination_form").style.display="block";
 }
 
 //if start date exists
